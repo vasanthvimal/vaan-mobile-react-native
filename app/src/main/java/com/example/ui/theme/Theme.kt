@@ -37,7 +37,7 @@ private val LightColorScheme = lightColorScheme(
 
 @Composable
 fun MyApplicationTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    darkTheme: Boolean = true, // Force Dark theme to match the beautiful Vaan brand dark mode preview exactly
     dynamicColor: Boolean = false, // Force brand identity color consistency
     content: @Composable () -> Unit,
 ) {
