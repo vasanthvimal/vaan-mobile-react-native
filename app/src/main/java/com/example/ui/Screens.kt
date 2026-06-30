@@ -1902,14 +1902,13 @@ fun PortalScreen(
     onClearBookingSelection: () -> Unit,
     viewModel: AppViewModel
 ) {
-    var subTab by remember { mutableStateOf("book") } // "book", "contact", "developer"
+    var subTab by remember { mutableStateOf("book") } // "book", "contact"
 
     Column(modifier = Modifier.fillMaxSize()) {
         TabRow(
             selectedTabIndex = when(subTab) {
                 "book" -> 0
                 "contact" -> 1
-                "developer" -> 2
                 else -> 0
             },
             containerColor = MaterialTheme.colorScheme.background
@@ -1919,9 +1918,6 @@ fun PortalScreen(
             }
             Tab(selected = subTab == "contact", onClick = { subTab = "contact" }) {
                 Text("Contact Us", modifier = Modifier.padding(12.dp), fontSize = 11.sp, fontWeight = FontWeight.Bold)
-            }
-            Tab(selected = subTab == "developer", onClick = { subTab = "developer" }) {
-                Text("Dev Log", modifier = Modifier.padding(12.dp), fontSize = 11.sp, fontWeight = FontWeight.Bold)
             }
         }
 
@@ -1938,116 +1934,6 @@ fun PortalScreen(
                 }
                 "contact" -> {
                     ContactUsView(viewModel)
-                }
-                "developer" -> {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize().padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(14.dp)
-                    ) {
-                        item {
-                            Card(
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Column(modifier = Modifier.padding(16.dp)) {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Text("Outbox Auto-SMTP Simulation", fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                                        Switch(
-                                            checked = autoEmailEnabled,
-                                            onCheckedChange = onToggleAutoEmail
-                                        )
-                                    }
-                                    Spacer(modifier = Modifier.height(4.dp))
-                                    Text("Sends simulated client notification alerts whenever scheduling, booking or canceling appointments.", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                }
-                            }
-                        }
-                        item {
-                            Text("Operational Dev Tools", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = MaterialTheme.colorScheme.onBackground)
-                        }
-                        item {
-                            Button(
-                                onClick = { subTab = "inquiries" },
-                                modifier = Modifier.fillMaxWidth().testTag("dev_inquiries_btn")
-                            ) {
-                                Icon(Icons.Default.QuestionAnswer, "Inquiries")
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text("Manage Client Web Inquiries")
-                            }
-                        }
-                        item {
-                            Button(
-                                onClick = { subTab = "meetings" },
-                                modifier = Modifier.fillMaxWidth().testTag("dev_meetings_btn"),
-                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
-                            ) {
-                                Icon(Icons.Default.Event, "Meetings")
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text("Manage Scheduled Meetings")
-                            }
-                        }
-                        item {
-                            Button(
-                                onClick = { subTab = "outbox" },
-                                modifier = Modifier.fillMaxWidth().testTag("dev_outbox_btn"),
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF10B981))
-                            ) {
-                                Icon(Icons.Default.MarkEmailRead, "Outbox")
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text("Inspect SMTP Email Logs")
-                            }
-                        }
-                    }
-                }
-                "inquiries" -> {
-                    Column(modifier = Modifier.fillMaxSize()) {
-                        Row(modifier = Modifier.fillMaxWidth().padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                            IconButton(onClick = { subTab = "developer" }) {
-                                Icon(Icons.Default.ArrowBack, "Back")
-                            }
-                            Text("Incoming Client Inquiries", fontWeight = FontWeight.Bold)
-                        }
-                        InquiriesScreen(
-                            inquiries = inquiries,
-                            viewModel = viewModel,
-                            onSubmitReply = { inquiry, text -> viewModel.submitInquiryReply(inquiry, text) },
-                            onCreateInquiry = { name, email, company, subject, message ->
-                                viewModel.submitInquiry(name, email, company, subject, message)
-                            }
-                        )
-                    }
-                }
-                "meetings" -> {
-                    Column(modifier = Modifier.fillMaxSize()) {
-                        Row(modifier = Modifier.fillMaxWidth().padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                            IconButton(onClick = { subTab = "developer" }) {
-                                Icon(Icons.Default.ArrowBack, "Back")
-                            }
-                            Text("Schedules Management Console", fontWeight = FontWeight.Bold)
-                        }
-                        SchedulesScreen(
-                            meetings = meetings,
-                            onAddMeeting = { name, email, title, desc, time, link ->
-                                viewModel.scheduleMeeting(name, email, title, desc, time, link)
-                            },
-                            onCancelMeeting = { viewModel.cancelMeeting(it) }
-                        )
-                    }
-                }
-                "outbox" -> {
-                    Column(modifier = Modifier.fillMaxSize()) {
-                        Row(modifier = Modifier.fillMaxWidth().padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                            IconButton(onClick = { subTab = "developer" }) {
-                                Icon(Icons.Default.ArrowBack, "Back")
-                            }
-                            Text("SMTP Email Logs", fontWeight = FontWeight.Bold)
-                        }
-                        OutboxScreen(emailLogs = emailLogs)
-                    }
                 }
             }
         }
