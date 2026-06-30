@@ -5,45 +5,23 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Subtle background branding accents within safe zone -->
+    <!-- Subtle branding circular pulse in safe zone background -->
     <path
         android:fillColor="#14B8A6"
-        android:fillAlpha="0.15"
-        android:pathData="M54,18 A36,36 0 1,0 90,54 A36,36 0 0,0 54,18" />
+        android:fillAlpha="0.1"
+        android:pathData="M54,54m-33,0a33,33 0 1,1 66,0a33,33 0 1,1 -66,0" />
 
-    <!-- Modern V-Monogram Tech Silhouette -->
-    <!-- Left Stem of V -->
+    <!-- Solid Brand V symbol with the same slope and style -->
     <path
-        android:fillColor="#14B8A6"
-        android:pathData="M32,32 L48,74 C49,76 51,76 52,74 L68,32 L58,32 L49,58 L42,32 Z" />
-
-    <!-- Right Accent Node Link -->
-    <path
-        android:fillColor="#0EA5E9"
-        android:pathData="M60,32 L51,54 L55,64 L68,32 Z" />
-
-    <!-- Floating Connection Nodes representing schedules, appointments and inquiries synchronization -->
-    <group>
-        <!-- Node 1: Schedules (Top Left) -->
-        <path
-            android:fillColor="#FFFFFF"
-            android:pathData="M32,32 M32,32 m-4,0 a4,4 0 1,1 8,0 a4,4 0 1,1 -8,0" />
-        <!-- Node 2: Appointments (Top Right) -->
-        <path
-            android:fillColor="#0EA5E9"
-            android:pathData="M68,32 M68,32 m-5,0 a5,5 0 1,1 10,0 a5,5 0 1,1 -10,0" />
-        <!-- Node 3: Sync Junction (Bottom Core) -->
-        <path
-            android:fillColor="#14B8A6"
-            android:pathData="M49,74 M49,74 m-4,0 a4,4 0 1,1 8,0 a4,4 0 1,1 -8,0" />
-    </group>
-
-    <!-- Connecting digital circuits threads -->
-    <path
-        android:strokeColor="#FFFFFF"
-        android:strokeWidth="1.2"
+        android:strokeColor="#14B8A6"
+        android:strokeWidth="9"
         android:strokeLineCap="round"
-        android:strokeAlpha="0.4"
-        android:pathData="M32,32 L49,74 L68,32" />
+        android:strokeLineJoin="round"
+        android:pathData="M31,33 L54,75 L77,33" />
+
+    <!-- Connected orange/gold consulting vertex dot -->
+    <path
+        android:fillColor="#F59E0B"
+        android:pathData="M54,75m-8.5,0a8.5,8.5 0 1,1 17,0a8.5,8.5 0 1,1 -17,0" />
 
 </vector>
