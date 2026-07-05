@@ -2185,11 +2185,12 @@ fun ContactUsView(viewModel: AppViewModel) {
                             Column {
                                 Text("CONSULTING SERVICE REQUIRED", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 Spacer(modifier = Modifier.height(4.dp))
-                                Box(
+                                BoxWithConstraints(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clickable { dropdownExpanded = !dropdownExpanded }
                                 ) {
+                                    val menuWidth = maxWidth
                                     OutlinedTextField(
                                         value = selectedService,
                                         onValueChange = {},
@@ -2208,7 +2209,8 @@ fun ContactUsView(viewModel: AppViewModel) {
                                     )
                                     DropdownMenu(
                                         expanded = dropdownExpanded,
-                                        onDismissRequest = { dropdownExpanded = false }
+                                        onDismissRequest = { dropdownExpanded = false },
+                                        modifier = Modifier.width(menuWidth)
                                     ) {
                                         serviceOptions.forEach { option ->
                                             DropdownMenuItem(
