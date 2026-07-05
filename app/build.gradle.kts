@@ -45,6 +45,11 @@ android {
       isMinifyEnabled = false
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
       signingConfig = signingConfigs.getByName("release")
+      
+      // Automatically package and upload native debug symbols to Google Play
+      ndk {
+        debugSymbolLevel = "SYMBOL_TABLE"
+      }
     }
     debug {
       signingConfig = signingConfigs.getByName("debugConfig")
