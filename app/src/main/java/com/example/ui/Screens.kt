@@ -175,7 +175,7 @@ val servicesList = listOf(
     ),
     VaanService(
         id = "web_dev",
-        title = "Custom Web App Development",
+        title = "Web Application Development",
         icon = Icons.Default.Code,
         subtitle = "Enterprise Web Applications & API Gateways",
         description = "Build scalable, secure web services and customer portals. We optimize backend microservices and construct modern web applications designed for high load.",
@@ -505,6 +505,7 @@ fun HomeScreen(
     autoEmailEnabled: Boolean,
     onNavigateToTab: (String) -> Unit
 ) {
+    val context = LocalContext.current
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -552,7 +553,7 @@ fun HomeScreen(
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
-                        text = "Independent IT consultancy led by Vasanth N — architecting cloud-native data platforms for banking, energy, and automotive enterprises. Strategy through to production.",
+                        text = "Independent IT consultancy led by VAAN consultancy — architecting cloud-native data platforms for banking, energy, and automotive enterprises. Strategy through to production.",
                         color = Color.White.copy(alpha = 0.85f),
                         fontSize = 13.sp,
                         lineHeight = 18.sp
@@ -612,7 +613,7 @@ fun HomeScreen(
                     
                     // Main body
                     Text(
-                        text = "VAAN Consulting is the independent practice of Vasanth N, a SAFe 6 Agilist who has spent over sixteen years translating business strategy into cloud-native, data-driven platforms for banking, automotive and energy & utilities organisations.",
+                        text = "VAAN Consulting is the independent practice of VAAN consultancy, a SAFe 6 Agilist who has spent over sixteen years translating business strategy into cloud-native, data-driven platforms for banking, automotive and energy & utilities organisations.",
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurface,
                         lineHeight = 19.sp
@@ -917,7 +918,12 @@ fun HomeScreen(
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.clickable {
-                                // simulated click
+                                try {
+                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.linkedin.com/company/vaan-consulting/"))
+                                    context.startActivity(intent)
+                                } catch (e: Exception) {
+                                    android.widget.Toast.makeText(context, "Could not open LinkedIn", android.widget.Toast.LENGTH_SHORT).show()
+                                }
                             }
                         )
                         Text(
@@ -926,16 +932,26 @@ fun HomeScreen(
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.clickable {
-                                // simulated click
+                                try {
+                                    val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:vaanconsulting@gmail.com"))
+                                    context.startActivity(intent)
+                                } catch (e: Exception) {
+                                    android.widget.Toast.makeText(context, "Could not open email application", android.widget.Toast.LENGTH_SHORT).show()
+                                }
                             }
                         )
                         Text(
-                            text = "022 560 1989",
+                            text = "+64 22 560 1989",
                             color = Color(0xFF38BDF8),
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.clickable {
-                                // simulated click
+                                try {
+                                    val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:+64225601989"))
+                                    context.startActivity(intent)
+                                } catch (e: Exception) {
+                                    android.widget.Toast.makeText(context, "Could not open dialer", android.widget.Toast.LENGTH_SHORT).show()
+                                }
                             }
                         )
                     }
@@ -1775,7 +1791,7 @@ fun VaanAiChatScreen(viewModel: AppViewModel) {
                         Text("Suggested topics to click:", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.secondary)
                         val chips = listOf(
                             "Tell me about Databricks pipeline optimizations",
-                            "How does Vasanth N support SAFe 6 transformations?",
+                            "How does VAAN consultancy support SAFe 6 transformations?",
                             "Do you perform legacy mainframe DB2 database migrations?",
                             "Can you build secure, offline-first mobile applications?"
                         )
@@ -2012,8 +2028,12 @@ fun ContactUsView(viewModel: AppViewModel) {
                     
                     // EMAIL ADDRESS
                     Column(modifier = Modifier.clickable {
-                        val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:vaanconsulting@gmail.com"))
-                        context.startActivity(intent)
+                        try {
+                            val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:vaanconsulting@gmail.com"))
+                            context.startActivity(intent)
+                        } catch (e: Exception) {
+                            android.widget.Toast.makeText(context, "Could not open email application", android.widget.Toast.LENGTH_SHORT).show()
+                        }
                     }) {
                         Text("EMAIL ADDRESS", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                         Text("vaanconsulting@gmail.com", color = Color(0xFF38BDF8), fontSize = 14.sp, fontWeight = FontWeight.Bold)
@@ -2023,11 +2043,15 @@ fun ContactUsView(viewModel: AppViewModel) {
                     
                     // PHONE CONTACT
                     Column(modifier = Modifier.clickable {
-                        val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:0225601989"))
-                        context.startActivity(intent)
+                        try {
+                            val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:+64225601989"))
+                            context.startActivity(intent)
+                        } catch (e: Exception) {
+                            android.widget.Toast.makeText(context, "Could not open dialer", android.widget.Toast.LENGTH_SHORT).show()
+                        }
                     }) {
                         Text("PHONE CONTACT", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 9.sp, fontWeight = FontWeight.Bold)
-                        Text("022 560 1989", color = Color(0xFF38BDF8), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        Text("+64 22 560 1989", color = Color(0xFF38BDF8), fontSize = 14.sp, fontWeight = FontWeight.Bold)
                     }
                     
                     Spacer(modifier = Modifier.height(16.dp))
@@ -2161,17 +2185,25 @@ fun ContactUsView(viewModel: AppViewModel) {
                             Column {
                                 Text("CONSULTING SERVICE REQUIRED", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 Spacer(modifier = Modifier.height(4.dp))
-                                Box(modifier = Modifier.fillMaxWidth()) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable { dropdownExpanded = !dropdownExpanded }
+                                ) {
                                     OutlinedTextField(
                                         value = selectedService,
                                         onValueChange = {},
                                         readOnly = true,
-                                        modifier = Modifier.fillMaxWidth().clickable { dropdownExpanded = true }.testTag("inquiry_service"),
+                                        enabled = false,
+                                        colors = OutlinedTextFieldDefaults.colors(
+                                            disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                                            disabledBorderColor = MaterialTheme.colorScheme.outline,
+                                            disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                        ),
+                                        modifier = Modifier.fillMaxWidth().testTag("inquiry_service"),
                                         shape = RoundedCornerShape(10.dp),
                                         trailingIcon = {
-                                            IconButton(onClick = { dropdownExpanded = !dropdownExpanded }) {
-                                                Icon(Icons.Default.ArrowDropDown, "Select Service")
-                                            }
+                                            Icon(Icons.Default.ArrowDropDown, "Select Service")
                                         }
                                     )
                                     DropdownMenu(
@@ -2280,8 +2312,12 @@ fun ContactUsView(viewModel: AppViewModel) {
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.fillMaxWidth().clickable {
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://wa.me/64225601989"))
-                    context.startActivity(intent)
+                    try {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://wa.me/64225601989"))
+                        context.startActivity(intent)
+                    } catch (e: Exception) {
+                        android.widget.Toast.makeText(context, "Could not open WhatsApp link", android.widget.Toast.LENGTH_SHORT).show()
+                    }
                 }.testTag("contact_whatsapp")
             ) {
                 Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -2297,7 +2333,7 @@ fun ContactUsView(viewModel: AppViewModel) {
                     Spacer(modifier = Modifier.width(16.dp))
                     Column {
                         Text("Direct WhatsApp", fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                        Text("Chat instantly with Vasanth N on +64 22 560 1989", fontSize = 12.sp, color = Color(0xFF10B981))
+                        Text("Chat instantly with VAAN consultancy on +64 22 560 1989", fontSize = 12.sp, color = Color(0xFF10B981))
                     }
                 }
             }
@@ -2463,7 +2499,7 @@ fun ConsultationBookingForm(
                         "Data Platform Architecture & Strategy",
                         "Cloud & Digital Transformation",
                         "Mobile Application Development",
-                        "Custom Web App Development",
+                        "Web Application Development",
                         "Bespoke Technology Consulting / Other"
                     )
                     Row(
@@ -3843,7 +3879,7 @@ fun AddAppointmentDialog(onDismiss: () -> Unit, onConfirm: (String, String, Stri
         "Data Platform Architecture & Strategy",
         "Cloud & Digital Transformation",
         "Mobile Application Development",
-        "Custom Web App Development",
+        "Web Application Development",
         "Bespoke Technology Consulting / Other"
     )
 

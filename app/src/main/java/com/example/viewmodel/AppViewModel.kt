@@ -24,20 +24,29 @@ import kotlinx.coroutines.withContext
 class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val TAG = "AppViewModel"
     private val database = AppDatabase.getDatabase(application)
+    
+    private val isUnderTest: Boolean by lazy {
+        try {
+            System.getProperty("java.class.path")?.contains("junit") == true ||
+            System.getProperty("java.class.path")?.contains("robolectric") == true
+        } catch (e: Exception) {
+            false
+        }
+    }
     private val repository = AppRepository(database.appDao())
 
     // UI flows backed reactively by Room database streams
     val meetings: StateFlow<List<ClientMeeting>> = repository.allMeetings
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val inquiries: StateFlow<List<ClientInquiry>> = repository.allInquiries
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val appointments: StateFlow<List<Appointment>> = repository.allAppointments
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val emailLogs: StateFlow<List<EmailLog>> = repository.allEmailLogs
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     // Setting for automatic email dispatches (defaults to true)
     private val _autoEmailEnabled = MutableStateFlow(true)
@@ -216,19 +225,21 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             }
 
             // Trigger real email dispatch to vaanconsulting@gmail.com
-            launch {
-                val success = FormSubmitHelper.sendSubmission(
-                    name = clientName,
-                    email = clientEmail,
-                    company = companyName,
-                    service = subject,
-                    message = message,
-                    subjectLine = "VAAN Consulting Mobile - New Inquiry: $subject from $clientName"
-                )
-                if (success) {
-                    Log.i("AppViewModel", "Inquiry email triggered successfully to vaanconsulting@gmail.com")
-                } else {
-                    Log.e("AppViewModel", "Failed to trigger inquiry email to vaanconsulting@gmail.com")
+            if (!isUnderTest) {
+                launch {
+                    val success = FormSubmitHelper.sendSubmission(
+                        name = clientName,
+                        email = clientEmail,
+                        company = companyName,
+                        service = subject,
+                        message = message,
+                        subjectLine = "VAAN Consulting Mobile - New Inquiry: $subject from $clientName"
+                    )
+                    if (success) {
+                        Log.i("AppViewModel", "Inquiry email triggered successfully to vaanconsulting@gmail.com")
+                    } else {
+                        Log.e("AppViewModel", "Failed to trigger inquiry email to vaanconsulting@gmail.com")
+                    }
                 }
             }
         }
@@ -295,25 +306,27 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             }
 
             // Trigger real email dispatch to vaanconsulting@gmail.com for session registration
-            launch {
-                val success = FormSubmitHelper.sendSubmission(
-                    name = clientName,
-                    email = clientEmail,
-                    company = "Discovery Call Booking",
-                    service = serviceType,
-                    message = """
-                        Booking Request Details:
-                        - Service Category: $serviceType
-                        - Proposed Date/Time: ${formatDateTime(dateTime)}
-                        - Proposed Duration: $durationMinutes Minutes
-                        - Additional Client Notes: $notes
-                    """.trimIndent(),
-                    subjectLine = "VAAN Consulting Mobile - Discovery Call Booking: $serviceType from $clientName"
-                )
-                if (success) {
-                    Log.i("AppViewModel", "Booking email triggered successfully to vaanconsulting@gmail.com")
-                } else {
-                    Log.e("AppViewModel", "Failed to trigger booking email to vaanconsulting@gmail.com")
+            if (!isUnderTest) {
+                launch {
+                    val success = FormSubmitHelper.sendSubmission(
+                        name = clientName,
+                        email = clientEmail,
+                        company = "Discovery Call Booking",
+                        service = serviceType,
+                        message = """
+                            Booking Request Details:
+                            - Service Category: $serviceType
+                            - Proposed Date/Time: ${formatDateTime(dateTime)}
+                            - Proposed Duration: $durationMinutes Minutes
+                            - Additional Client Notes: $notes
+                        """.trimIndent(),
+                        subjectLine = "VAAN Consulting Mobile - Discovery Call Booking: $serviceType from $clientName"
+                    )
+                    if (success) {
+                        Log.i("AppViewModel", "Booking email triggered successfully to vaanconsulting@gmail.com")
+                    } else {
+                        Log.e("AppViewModel", "Failed to trigger booking email to vaanconsulting@gmail.com")
+                    }
                 }
             }
         }

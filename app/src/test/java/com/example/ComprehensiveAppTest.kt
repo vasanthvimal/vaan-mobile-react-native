@@ -14,6 +14,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.*
 import org.junit.Rule
@@ -43,7 +44,7 @@ class ComprehensiveAppTest {
         val viewModel = AppViewModel(app)
 
         // Verify initial state
-        val initialInquiries = viewModel.inquiries.first()
+        val initialInquiries = viewModel.inquiries.value
         assertNotNull(initialInquiries)
 
         // Submit an inquiry and check state transition
@@ -55,10 +56,10 @@ class ComprehensiveAppTest {
             message = "We need a comprehensive security audit of our cloud platform."
         )
 
-        // Allow coroutines to process the insert
         testScheduler.advanceUntilIdle()
+        composeTestRule.waitForIdle()
 
-        val updatedInquiries = viewModel.inquiries.first()
+        val updatedInquiries = viewModel.inquiries.value
         val match = updatedInquiries.any {
             it.clientName == "Security Specialist" &&
             it.clientEmail == "test@company.com" &&
@@ -89,10 +90,9 @@ class ComprehensiveAppTest {
         )
 
         testScheduler.advanceUntilIdle()
+        composeTestRule.waitForIdle()
 
-        // Verify the database handles the query strictly as data (parameterized query) without crash
-        val inquiries = viewModel.inquiries.first()
-        val maliciousInquiry = inquiries.firstOrNull { it.clientName == "Hacker" }
+        val maliciousInquiry = viewModel.inquiries.value.firstOrNull { it.clientName == "Hacker" }
         assertNotNull("Malicious payload was rejected instead of stored as safe literal data", maliciousInquiry)
         assertEquals(sqlInjectionPayload, maliciousInquiry?.subject)
 
@@ -107,8 +107,9 @@ class ComprehensiveAppTest {
         )
 
         testScheduler.advanceUntilIdle()
+        composeTestRule.waitForIdle()
 
-        val heavyInquiry = viewModel.inquiries.first().firstOrNull { it.clientName == "StressTester" }
+        val heavyInquiry = viewModel.inquiries.value.firstOrNull { it.clientName == "StressTester" }
         assertNotNull("Heavy payload failed to persist safely", heavyInquiry)
         assertEquals(10000, heavyInquiry?.message?.length)
     }
@@ -142,9 +143,9 @@ class ComprehensiveAppTest {
         }
 
         testScheduler.advanceUntilIdle()
+        composeTestRule.waitForIdle()
 
-        val allInquiries = viewModel.inquiries.first()
-        val stressCount = allInquiries.count { it.companyName == "Stress Co" }
+        val stressCount = viewModel.inquiries.value.count { it.companyName == "Stress Co" }
 
         // Assert all concurrent operations finished successfully without transactional conflict
         assertEquals("Not all concurrent write transactions succeeded", transactionCount, stressCount)
