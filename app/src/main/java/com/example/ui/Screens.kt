@@ -919,7 +919,7 @@ fun HomeScreen(
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.clickable {
                                 try {
-                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.linkedin.com/company/vaan-consulting/"))
+                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.linkedin.com/in/vasanth-vimal/"))
                                     context.startActivity(intent)
                                 } catch (e: Exception) {
                                     android.widget.Toast.makeText(context, "Could not open LinkedIn", android.widget.Toast.LENGTH_SHORT).show()
