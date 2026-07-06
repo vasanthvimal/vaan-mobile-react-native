@@ -908,15 +908,12 @@ fun HomeScreen(
                         letterSpacing = 1.sp
                     )
                     Spacer(modifier = Modifier.height(8.dp))
-                    Row(
+                    Column(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        Text(
-                            text = "LinkedIn",
-                            color = Color(0xFF38BDF8),
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.clickable {
                                 try {
                                     val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.linkedin.com/in/vasanth-vimal/"))
@@ -925,12 +922,23 @@ fun HomeScreen(
                                     android.widget.Toast.makeText(context, "Could not open LinkedIn", android.widget.Toast.LENGTH_SHORT).show()
                                 }
                             }
-                        )
-                        Text(
-                            text = "vaanconsulting@gmail.com",
-                            color = Color(0xFF38BDF8),
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Language,
+                                contentDescription = "LinkedIn",
+                                tint = Color(0xFF38BDF8),
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "LinkedIn (vasanth-vimal)",
+                                color = Color(0xFF38BDF8),
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.clickable {
                                 try {
                                     val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:vaanconsulting@gmail.com"))
@@ -939,12 +947,23 @@ fun HomeScreen(
                                     android.widget.Toast.makeText(context, "Could not open email application", android.widget.Toast.LENGTH_SHORT).show()
                                 }
                             }
-                        )
-                        Text(
-                            text = "+64 22 560 1989",
-                            color = Color(0xFF38BDF8),
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Email,
+                                contentDescription = "Email",
+                                tint = Color(0xFF38BDF8),
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "vaanconsulting@gmail.com",
+                                color = Color(0xFF38BDF8),
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.clickable {
                                 try {
                                     val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:+64225601989"))
@@ -953,7 +972,21 @@ fun HomeScreen(
                                     android.widget.Toast.makeText(context, "Could not open dialer", android.widget.Toast.LENGTH_SHORT).show()
                                 }
                             }
-                        )
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Phone,
+                                contentDescription = "Phone",
+                                tint = Color(0xFF38BDF8),
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "+64 22 560 1989",
+                                color = Color(0xFF38BDF8),
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                     
                     Spacer(modifier = Modifier.height(24.dp))
