@@ -2,6 +2,7 @@ package com.example.ui
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -1265,6 +1266,7 @@ fun ServicesScreen(
     onBookService: (String) -> Unit
 ) {
     var searchQuery by remember { mutableStateOf("") }
+    var isSearchFocused by remember { mutableStateOf(false) }
     var selectedServiceForDetails by remember { mutableStateOf<VaanService?>(null) }
 
     val filteredServices = servicesList.filter {
@@ -1291,8 +1293,15 @@ fun ServicesScreen(
         OutlinedTextField(
             value = searchQuery,
             onValueChange = { searchQuery = it },
-            placeholder = { Text("Search services or platform tags (AWS, Snowflake)...") },
-            modifier = Modifier.fillMaxWidth().testTag("services_search_input"),
+            placeholder = {
+                if (!isSearchFocused) {
+                    Text("Search services or platform tags (AWS, Snowflake)...")
+                }
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .onFocusChanged { isSearchFocused = it.isFocused }
+                .testTag("services_search_input"),
             singleLine = true,
             leadingIcon = { Icon(Icons.Default.Search, null) },
             trailingIcon = {
@@ -1484,6 +1493,7 @@ fun InsightsScreen(
     onToggleBookmark: (String) -> Unit
 ) {
     var searchQuery by remember { mutableStateOf("") }
+    var isSearchFocused by remember { mutableStateOf(false) }
     var selectedCategory by remember { mutableStateOf("All") }
     var selectedArticleForReading by remember { mutableStateOf<TechArticle?>(null) }
     var showOnlyBookmarked by remember { mutableStateOf(false) }
@@ -1518,8 +1528,15 @@ fun InsightsScreen(
         OutlinedTextField(
             value = searchQuery,
             onValueChange = { searchQuery = it },
-            placeholder = { Text("Search technical articles...") },
-            modifier = Modifier.fillMaxWidth().testTag("blog_search_input"),
+            placeholder = {
+                if (!isSearchFocused) {
+                    Text("Search technical articles...")
+                }
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .onFocusChanged { isSearchFocused = it.isFocused }
+                .testTag("blog_search_input"),
             singleLine = true,
             leadingIcon = { Icon(Icons.Default.Search, null) },
             trailingIcon = {
@@ -1770,6 +1787,7 @@ fun VaanAiChatScreen(viewModel: AppViewModel) {
     val chatMessages by viewModel.chatMessages.collectAsState()
     val isChatLoading by viewModel.isChatLoading.collectAsState()
     var userMessageText by remember { mutableStateOf("") }
+    var isChatFocused by remember { mutableStateOf(false) }
 
     val chatListState = androidx.compose.foundation.lazy.rememberLazyListState()
 
@@ -1906,8 +1924,15 @@ fun VaanAiChatScreen(viewModel: AppViewModel) {
             OutlinedTextField(
                 value = userMessageText,
                 onValueChange = { userMessageText = it },
-                placeholder = { Text("Ask about our architectures...") },
-                modifier = Modifier.weight(1f).testTag("chat_text_input"),
+                placeholder = {
+                    if (!isChatFocused) {
+                        Text("Ask about our architectures...")
+                    }
+                },
+                modifier = Modifier
+                    .weight(1f)
+                    .onFocusChanged { isChatFocused = it.isFocused }
+                    .testTag("chat_text_input"),
                 singleLine = true,
                 trailingIcon = {
                     if (userMessageText.isNotEmpty()) {
