@@ -213,7 +213,7 @@ object GeminiHelper {
         val apiKey = BuildConfig.GEMINI_API_KEY
         val systemInstruction = """
             You are VaanAI, a helpful, highly professional, and friendly AI chatbot assistant for VAAN Consulting (https://www.vaanconsulting.com/).
-            VAAN Consulting is an independent IT consultancy led by VAAN consultancy — a technical leader with 16+ years of experience architecting cloud-native data platforms and digital applications for banking, energy, and automotive enterprises.
+            VAAN Consulting is an independent IT consultancy led by Vasanth N — a technical leader with 16+ years of experience architecting cloud-native data platforms and digital applications for banking, energy, and automotive enterprises.
             We specialize in Strategy through to Production across:
             - Data Platform Architecture & Strategy: Snowflake, Databricks, Microsoft Fabric, DB2/Oracle database modernizations to PostgreSQL.
             - Cloud & Digital Transformation: AWS, Azure, GCP, Kubernetes, multi-cloud strategy, infrastructure as code, cloud cost optimization.
@@ -317,7 +317,7 @@ object GeminiHelper {
         val lower = msg.lowercase()
         return when {
             lower.contains("aws") || lower.contains("gcp") || lower.contains("azure") || lower.contains("cloud") -> {
-                "Vaan Consulting specializes in enterprise-grade multi-cloud architectures. We design secure, scalable, and resilient platforms on AWS, Google Cloud, and Azure. VAAN consultancy has over 16 years of experience architecting cloud backends for regulated banking and energy firms. Would you like to check our Services tab or schedule a cloud migration consultation with us?"
+                "Vaan Consulting specializes in enterprise-grade multi-cloud architectures. We design secure, scalable, and resilient platforms on AWS, Google Cloud, and Azure. Vasanth N has over 16 years of experience architecting cloud backends for regulated banking and energy firms. Would you like to check our Services tab or schedule a cloud migration consultation with us?"
             }
             lower.contains("data") || lower.contains("snowflake") || lower.contains("databricks") || lower.contains("fabric") -> {
                 "Data is engineered to move! We design low-latency, real-time data pipelines and analytics warehouses on Snowflake, Databricks, and Microsoft Fabric. Our clients typically achieve a 30% reduction in data pipeline processing times. If you have legacy database systems, we also consult on zero-downtime migrations to modern engines like PostgreSQL."
@@ -326,7 +326,7 @@ object GeminiHelper {
                 "Vaan Consulting builds custom, high-performance mobile and web solutions. Our mobile apps are engineered for offline-first resilience using Jetpack Compose and local encrypted SQLite/Room storage with automated background sync. For web applications, we deploy scalable React/TypeScript portals and low-latency API layers designed to handle substantial user loads."
             }
             lower.contains("agility") || lower.contains("safe") || lower.contains("agile") || lower.contains("scrum") -> {
-                "Lead architect VAAN consultancy is a certified SAFe 6 Agilist with more than 16 years of hands-on experience guiding teams. We help enterprises scale their agile practices, streamline scrum frameworks, and bridge the gap between engineering teams and business leadership."
+                "Lead architect Vasanth N is a certified SAFe 6 Agilist with more than 16 years of hands-on experience guiding teams. We help enterprises scale their agile practices, streamline scrum frameworks, and bridge the gap between engineering teams and business leadership."
             }
             lower.contains("contact") || lower.contains("email") || lower.contains("phone") || lower.contains("whatsapp") || lower.contains("address") -> {
                 "You can reach Vaan Consulting in several ways: \n- Email: info@vaanconsulting.com\n- Phone / Mobile: +64 21 000 0000 (New Zealand office)\n- WhatsApp: Chat with us instantly\n- Website: https://www.vaanconsulting.com/\n\nAll of these quick contact methods and direct deep-links are readily accessible in our Contact section inside the Bookings tab!"
@@ -335,7 +335,7 @@ object GeminiHelper {
                 "Booking a Discovery Call with Vaan is incredibly simple! Head over to our Bookings tab right inside this app, fill out your company email, proposed date, and select from our primary consulting services (including Cloud & Digital, Data Platform, or Mobile/Web Dev). It will immediately trigger our scheduling system!"
             }
             lower.contains("about") || lower.contains("who") || lower.contains("vasanth") || lower.contains("nz") || lower.contains("zealand") -> {
-                "Vaan Consulting is an independent IT consultancy led by VAAN consultancy, headquartered in New Zealand with global consulting reach. VAAN consultancy has over 16 years of technical leadership across banking, energy, and automotive sectors, backed by 28 professional cloud and data certifications. Our engineering mantra is building enterprise platforms that are robust, secure, and engineered to move."
+                "Vaan Consulting is an independent IT consultancy led by Vasanth N, headquartered in New Zealand with global consulting reach. Vasanth N has over 16 years of technical leadership across banking, energy, and automotive sectors, backed by 28 professional cloud and data certifications. Our engineering mantra is building enterprise platforms that are robust, secure, and engineered to move."
             }
             lower.contains("certification") || lower.contains("cert") -> {
                 "Our team holds 28 professional certifications across major cloud, database, and security providers including AWS Professional, Azure Solutions Architect, Google Professional Cloud Architect, Snowflake, Databricks, and SAFe 6 Agilist."

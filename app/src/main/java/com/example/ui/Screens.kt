@@ -553,7 +553,7 @@ fun HomeScreen(
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
-                        text = "Independent IT consultancy led by VAAN consultancy — architecting cloud-native data platforms for banking, energy, and automotive enterprises. Strategy through to production.",
+                        text = "Independent IT consultancy led by Vasanth N — a SAFe 6 Agilist with 16+ years architecting cloud-native data platforms for banking, energy and automotive enterprises. Strategy through to production, across AWS, Azure, GCP, Snowflake, Databricks and Microsoft Fabric.",
                         color = Color.White.copy(alpha = 0.85f),
                         fontSize = 13.sp,
                         lineHeight = 18.sp
@@ -613,7 +613,7 @@ fun HomeScreen(
                     
                     // Main body
                     Text(
-                        text = "VAAN Consulting is the independent practice of VAAN consultancy, a SAFe 6 Agilist who has spent over sixteen years translating business strategy into cloud-native, data-driven platforms for banking, automotive and energy & utilities organisations.",
+                        text = "VAAN Consulting is the independent practice of Vasanth N, a SAFe 6 Agilist who has spent over sixteen years translating business strategy into cloud-native, data-driven platforms for banking, automotive and energy & utilities organisations.",
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurface,
                         lineHeight = 19.sp
@@ -1791,7 +1791,7 @@ fun VaanAiChatScreen(viewModel: AppViewModel) {
                         Text("Suggested topics to click:", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.secondary)
                         val chips = listOf(
                             "Tell me about Databricks pipeline optimizations",
-                            "How does VAAN consultancy support SAFe 6 transformations?",
+                            "How does Vasanth N support SAFe 6 transformations?",
                             "Do you perform legacy mainframe DB2 database migrations?",
                             "Can you build secure, offline-first mobile applications?"
                         )
@@ -2386,7 +2386,7 @@ fun ContactUsView(viewModel: AppViewModel) {
                     Spacer(modifier = Modifier.width(16.dp))
                     Column {
                         Text("Direct WhatsApp", fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                        Text("Chat instantly with VAAN consultancy on +64 22 560 1989", fontSize = 12.sp, color = Color(0xFF10B981))
+                        Text("Chat instantly with Vasanth N on +64 22 560 1989", fontSize = 12.sp, color = Color(0xFF10B981))
                     }
                 }
             }
