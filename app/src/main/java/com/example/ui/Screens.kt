@@ -1420,9 +1420,9 @@ fun ServicesScreen(
                         OutlinedButton(
                             onClick = { selectedServiceForDetails = null },
                             shape = RoundedCornerShape(12.dp),
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(0.8f)
                         ) {
-                            Text("Dismiss", fontSize = 12.sp)
+                            Text("Dismiss", fontSize = 12.sp, maxLines = 1)
                         }
                         Button(
                             onClick = {
@@ -1430,9 +1430,9 @@ fun ServicesScreen(
                                 onBookService(service.title)
                             },
                             shape = RoundedCornerShape(12.dp),
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1.2f)
                         ) {
-                            Text("Book consultation", fontSize = 12.sp)
+                            Text("Book Session", fontSize = 12.sp, maxLines = 1)
                         }
                     }
                 }
