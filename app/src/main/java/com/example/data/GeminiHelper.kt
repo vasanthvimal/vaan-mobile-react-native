@@ -248,9 +248,28 @@ object GeminiHelper {
                     })
                 })
 
-                // Format chat history: user/model roles
-                chatHistory.takeLast(10).forEach { (sender, text) ->
+                // Filter and format chat history to strictly alternate starting with "user".
+                // Drop any initial "model" turns.
+                val processedHistory = mutableListOf<Pair<String, String>>()
+                var expectedRole = "user"
+                chatHistory.forEach { (sender, text) ->
                     val role = if (sender == "user") "user" else "model"
+                    if (role == expectedRole) {
+                        processedHistory.add(Pair(role, text))
+                        expectedRole = if (role == "user") "model" else "user"
+                    }
+                }
+
+                // If processedHistory ends with a "user" turn, drop the last "user" turn,
+                // because the current message is also a "user" turn and cannot be consecutive.
+                if (processedHistory.isNotEmpty() && processedHistory.last().first == "user") {
+                    processedHistory.removeAt(processedHistory.size - 1)
+                }
+
+                // Take only the last 10 turns to keep the context window clean
+                val finalHistory = processedHistory.takeLast(10)
+
+                finalHistory.forEach { (role, text) ->
                     contentsArray.put(JSONObject().apply {
                         put("role", role)
                         put("parts", JSONArray().apply {

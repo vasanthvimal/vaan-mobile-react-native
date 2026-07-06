@@ -1791,7 +1791,7 @@ fun VaanAiChatScreen(viewModel: AppViewModel) {
                         Text("Suggested topics to click:", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.secondary)
                         val chips = listOf(
                             "Tell me about Databricks pipeline optimizations",
-                            "How does Vasanth N support SAFe 6 transformations?",
+                            "How does VAAN Consultancy support SAFe 6 transformations?",
                             "Do you perform legacy mainframe DB2 database migrations?",
                             "Can you build secure, offline-first mobile applications?"
                         )
