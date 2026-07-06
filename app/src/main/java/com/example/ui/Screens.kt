@@ -2423,32 +2423,39 @@ fun ConsultationBookingForm(
         return emailStr.matches(emailRegex)
     }
 
-    // Set up native DatePickerDialog
-    val calendar = Calendar.getInstance()
+    // Set up native DatePickerDialog in NZST (Pacific/Auckland) timezone
+    val nzTimeZone = java.util.TimeZone.getTimeZone("Pacific/Auckland")
+    val calendar = Calendar.getInstance(nzTimeZone)
     val datePickerDialog = android.app.DatePickerDialog(
         context,
         { _, year, month, dayOfMonth ->
-            val cal = Calendar.getInstance()
+            val cal = Calendar.getInstance(nzTimeZone)
             cal.set(Calendar.YEAR, year)
             cal.set(Calendar.MONTH, month)
             cal.set(Calendar.DAY_OF_MONTH, dayOfMonth)
-            val sdf = SimpleDateFormat("MMMM dd, yyyy", Locale.US)
+            val sdf = SimpleDateFormat("MMMM dd, yyyy", Locale.US).apply {
+                timeZone = nzTimeZone
+            }
             proposedDate = sdf.format(cal.time)
             dateError = null // Clear error when selected
         },
         calendar.get(Calendar.YEAR),
         calendar.get(Calendar.MONTH),
         calendar.get(Calendar.DAY_OF_MONTH)
-    )
+    ).apply {
+        datePicker.minDate = System.currentTimeMillis() - 1000
+    }
 
-    // Set up native TimePickerDialog
+    // Set up native TimePickerDialog in NZST (Pacific/Auckland) timezone
     val timePickerDialog = android.app.TimePickerDialog(
         context,
         { _, hourOfDay, minute ->
-            val cal = Calendar.getInstance()
+            val cal = Calendar.getInstance(nzTimeZone)
             cal.set(Calendar.HOUR_OF_DAY, hourOfDay)
             cal.set(Calendar.MINUTE, minute)
-            val sdf = SimpleDateFormat("hh:mm a", Locale.US)
+            val sdf = SimpleDateFormat("hh:mm a", Locale.US).apply {
+                timeZone = nzTimeZone
+            }
             proposedTime = sdf.format(cal.time)
             timeError = null // Clear error when selected
         },
@@ -2741,8 +2748,34 @@ fun ConsultationBookingForm(
                             timeError = null
                         }
 
+                        if (!hasError && proposedDate.isNotBlank() && proposedTime.isNotBlank()) {
+                            val dateTimeFormat = SimpleDateFormat("MMMM dd, yyyy hh:mm a", Locale.US).apply {
+                                timeZone = java.util.TimeZone.getTimeZone("Pacific/Auckland")
+                            }
+                            try {
+                                val selectedDateTime = dateTimeFormat.parse("$proposedDate $proposedTime")
+                                val now = Date()
+                                if (selectedDateTime != null && selectedDateTime.before(now)) {
+                                    dateError = "Date/time cannot be in the past (NZST)"
+                                    timeError = "Date/time cannot be in the past (NZST)"
+                                    hasError = true
+                                }
+                            } catch (e: Exception) {
+                                // Parsing safety fallback
+                            }
+                        }
+
                         if (!hasError) {
-                            val timeMs = System.currentTimeMillis() + (24 * 3600 * 1000L)
+                            var timeMs = System.currentTimeMillis() + (24 * 3600 * 1000L)
+                            val dateTimeFormat = SimpleDateFormat("MMMM dd, yyyy hh:mm a", Locale.US).apply {
+                                timeZone = java.util.TimeZone.getTimeZone("Pacific/Auckland")
+                            }
+                            try {
+                                val selectedDateTime = dateTimeFormat.parse("$proposedDate $proposedTime")
+                                if (selectedDateTime != null) {
+                                    timeMs = selectedDateTime.time
+                                }
+                            } catch (e: Exception) {}
                             onBook(name, email, serviceType, timeMs, durationMinutes.toIntOrNull() ?: 30, "Date: $proposedDate, Time: $proposedTime. Notes: $notes")
                             bookingConfirmed = true
                         } else {
