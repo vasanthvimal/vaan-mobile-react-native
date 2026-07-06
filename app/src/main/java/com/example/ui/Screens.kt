@@ -2136,11 +2136,21 @@ fun ContactUsView(viewModel: AppViewModel) {
                                 OutlinedTextField(
                                     value = name,
                                     onValueChange = { 
-                                        name = it 
-                                        if (it.isNotBlank()) nameError = null
+                                        if (it.length <= 50) {
+                                            name = it 
+                                            if (it.isNotBlank()) nameError = null
+                                        }
                                     },
                                     isError = nameError != null,
-                                    supportingText = nameError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
+                                    supportingText = {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween
+                                        ) {
+                                            Text(nameError ?: "", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                                            Text("${name.length}/50", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        }
+                                    },
                                     modifier = Modifier.fillMaxWidth().testTag("inquiry_name"),
                                     placeholder = { Text("e.g. John Doe", fontSize = 13.sp) },
                                     singleLine = true,
@@ -2155,11 +2165,21 @@ fun ContactUsView(viewModel: AppViewModel) {
                                 OutlinedTextField(
                                     value = email,
                                     onValueChange = { 
-                                        email = it 
-                                        if (it.isNotBlank() && isValidEmail(it)) emailError = null
+                                        if (it.length <= 50) {
+                                            email = it 
+                                            if (it.isNotBlank() && isValidEmail(it)) emailError = null
+                                        }
                                     },
                                     isError = emailError != null,
-                                    supportingText = emailError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
+                                    supportingText = {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween
+                                        ) {
+                                            Text(emailError ?: "", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                                            Text("${email.length}/50", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        }
+                                    },
                                     modifier = Modifier.fillMaxWidth().testTag("inquiry_email"),
                                     placeholder = { Text("e.g. john@company.com", fontSize = 13.sp) },
                                     singleLine = true,
@@ -2173,7 +2193,19 @@ fun ContactUsView(viewModel: AppViewModel) {
                                 Spacer(modifier = Modifier.height(4.dp))
                                 OutlinedTextField(
                                     value = company,
-                                    onValueChange = { company = it },
+                                    onValueChange = { 
+                                        if (it.length <= 50) {
+                                            company = it 
+                                        }
+                                    },
+                                    supportingText = {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.End
+                                        ) {
+                                            Text("${company.length}/50", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        }
+                                    },
                                     modifier = Modifier.fillMaxWidth().testTag("inquiry_company"),
                                     placeholder = { Text("e.g. Acme Corp", fontSize = 13.sp) },
                                     singleLine = true,
@@ -2232,11 +2264,21 @@ fun ContactUsView(viewModel: AppViewModel) {
                                 OutlinedTextField(
                                     value = messageDescription,
                                     onValueChange = { 
-                                        messageDescription = it 
-                                        if (it.isNotBlank()) messageError = null
+                                        if (it.length <= 250) {
+                                            messageDescription = it 
+                                            if (it.isNotBlank()) messageError = null
+                                        }
                                     },
                                     isError = messageError != null,
-                                    supportingText = messageError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
+                                    supportingText = {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween
+                                        ) {
+                                            Text(messageError ?: "", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                                            Text("${messageDescription.length}/250", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        }
+                                    },
                                     modifier = Modifier.fillMaxWidth().height(100.dp).testTag("inquiry_message"),
                                     placeholder = { Text("Outline your technical bottlenecks, platform goals, or timeline boundaries...", fontSize = 13.sp) },
                                     maxLines = 5,
@@ -2254,12 +2296,18 @@ fun ContactUsView(viewModel: AppViewModel) {
                                     if (name.isBlank()) {
                                         nameError = "Name is required"
                                         hasError = true
+                                    } else if (name.length > 50) {
+                                        nameError = "Name must be max 50 characters"
+                                        hasError = true
                                     } else {
                                         nameError = null
                                     }
 
                                     if (email.isBlank()) {
                                         emailError = "Corporate email is required"
+                                        hasError = true
+                                    } else if (email.length > 50) {
+                                        emailError = "Email must be max 50 characters"
                                         hasError = true
                                     } else if (!isValidEmail(email)) {
                                         emailError = "Invalid email format"
@@ -2270,6 +2318,9 @@ fun ContactUsView(viewModel: AppViewModel) {
 
                                     if (messageDescription.isBlank()) {
                                         messageError = "Message is required"
+                                        hasError = true
+                                    } else if (messageDescription.length > 250) {
+                                        messageError = "Message must be max 250 characters"
                                         hasError = true
                                     } else {
                                         messageError = null
@@ -2465,12 +2516,22 @@ fun ConsultationBookingForm(
                 OutlinedTextField(
                     value = name,
                     onValueChange = { 
-                        name = it 
-                        if (it.isNotBlank()) nameError = null
+                        if (it.length <= 50) {
+                            name = it 
+                            if (it.isNotBlank()) nameError = null
+                        }
                     },
                     label = { Text("Your Name *") },
                     isError = nameError != null,
-                    supportingText = nameError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
+                    supportingText = {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(nameError ?: "", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                            Text("${name.length}/50", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    },
                     modifier = Modifier.fillMaxWidth().testTag("booking_name_input"),
                     singleLine = true,
                     leadingIcon = { Icon(Icons.Default.Person, null) }
@@ -2481,12 +2542,22 @@ fun ConsultationBookingForm(
                 OutlinedTextField(
                     value = email,
                     onValueChange = { 
-                        email = it 
-                        if (it.isNotBlank() && isValidEmail(it)) emailError = null
+                        if (it.length <= 50) {
+                            email = it 
+                            if (it.isNotBlank() && isValidEmail(it)) emailError = null
+                        }
                     },
                     label = { Text("Corporate Email Address *") },
                     isError = emailError != null,
-                    supportingText = emailError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
+                    supportingText = {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(emailError ?: "", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                            Text("${email.length}/50", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    },
                     modifier = Modifier.fillMaxWidth().testTag("booking_email_input"),
                     singleLine = true,
                     leadingIcon = { Icon(Icons.Default.Email, null) }
@@ -2599,8 +2670,20 @@ fun ConsultationBookingForm(
             item {
                 OutlinedTextField(
                     value = notes,
-                    onValueChange = { notes = it },
+                    onValueChange = { 
+                        if (it.length <= 250) {
+                            notes = it 
+                        }
+                    },
                     label = { Text("Describe your technical stack or goals") },
+                    supportingText = {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End
+                        ) {
+                            Text("${notes.length}/250", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    },
                     modifier = Modifier.fillMaxWidth().height(100.dp).testTag("booking_notes_input"),
                     maxLines = 4,
                     leadingIcon = { Icon(Icons.Default.Notes, null) }
@@ -2615,6 +2698,9 @@ fun ConsultationBookingForm(
                         if (name.isBlank()) {
                             nameError = "Name is required"
                             hasError = true
+                        } else if (name.length > 50) {
+                            nameError = "Name must be max 50 characters"
+                            hasError = true
                         } else {
                             nameError = null
                         }
@@ -2622,11 +2708,18 @@ fun ConsultationBookingForm(
                         if (email.isBlank()) {
                             emailError = "Corporate email is required"
                             hasError = true
+                        } else if (email.length > 50) {
+                            emailError = "Email must be max 50 characters"
+                            hasError = true
                         } else if (!isValidEmail(email)) {
                             emailError = "Invalid email format"
                             hasError = true
                         } else {
                             emailError = null
+                        }
+
+                        if (notes.length > 250) {
+                            hasError = true
                         }
 
                         if (proposedDate.isBlank()) {
