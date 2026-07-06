@@ -2394,6 +2394,7 @@ fun ContactUsView(viewModel: AppViewModel) {
     }
 }
 
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 fun ConsultationBookingForm(
     selectedService: String,
@@ -2652,7 +2653,11 @@ fun ConsultationBookingForm(
                 Column {
                     Text("Session Duration", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Spacer(modifier = Modifier.height(4.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
                         listOf("15", "30", "45", "60").forEach { mins ->
                             val isSelected = durationMinutes == mins
                             Row(
