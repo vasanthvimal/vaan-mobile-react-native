@@ -2027,6 +2027,12 @@ fun ContactUsView(viewModel: AppViewModel) {
     var messageDescription by remember { mutableStateOf("") }
     var isSubmitted by remember { mutableStateOf(false) }
     var dropdownExpanded by remember { mutableStateOf(false) }
+
+    // Focus States
+    var isNameFocused by remember { mutableStateOf(false) }
+    var isEmailFocused by remember { mutableStateOf(false) }
+    var isCompanyFocused by remember { mutableStateOf(false) }
+    var isMessageFocused by remember { mutableStateOf(false) }
     
     // Validation States
     var nameError by remember { mutableStateOf<String?>(null) }
@@ -2209,8 +2215,15 @@ fun ContactUsView(viewModel: AppViewModel) {
                                             Text("${name.length}/50", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                         }
                                     },
-                                    modifier = Modifier.fillMaxWidth().testTag("inquiry_name"),
-                                    placeholder = { Text("e.g. John Doe", fontSize = 13.sp) },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .onFocusChanged { isNameFocused = it.isFocused }
+                                        .testTag("inquiry_name"),
+                                    placeholder = {
+                                        if (!isNameFocused) {
+                                            Text("e.g. John Doe", fontSize = 13.sp)
+                                        }
+                                    },
                                     singleLine = true,
                                     shape = RoundedCornerShape(10.dp)
                                 )
@@ -2238,8 +2251,15 @@ fun ContactUsView(viewModel: AppViewModel) {
                                             Text("${email.length}/50", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                         }
                                     },
-                                    modifier = Modifier.fillMaxWidth().testTag("inquiry_email"),
-                                    placeholder = { Text("e.g. john@company.com", fontSize = 13.sp) },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .onFocusChanged { isEmailFocused = it.isFocused }
+                                        .testTag("inquiry_email"),
+                                    placeholder = {
+                                        if (!isEmailFocused) {
+                                            Text("e.g. john@company.com", fontSize = 13.sp)
+                                        }
+                                    },
                                     singleLine = true,
                                     shape = RoundedCornerShape(10.dp)
                                 )
@@ -2264,8 +2284,15 @@ fun ContactUsView(viewModel: AppViewModel) {
                                             Text("${company.length}/50", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                         }
                                     },
-                                    modifier = Modifier.fillMaxWidth().testTag("inquiry_company"),
-                                    placeholder = { Text("e.g. Acme Corp", fontSize = 13.sp) },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .onFocusChanged { isCompanyFocused = it.isFocused }
+                                        .testTag("inquiry_company"),
+                                    placeholder = {
+                                        if (!isCompanyFocused) {
+                                            Text("e.g. Acme Corp", fontSize = 13.sp)
+                                        }
+                                    },
                                     singleLine = true,
                                     shape = RoundedCornerShape(10.dp)
                                 )
@@ -2337,8 +2364,16 @@ fun ContactUsView(viewModel: AppViewModel) {
                                             Text("${messageDescription.length}/250", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                         }
                                     },
-                                    modifier = Modifier.fillMaxWidth().height(100.dp).testTag("inquiry_message"),
-                                    placeholder = { Text("Outline your technical bottlenecks, platform goals, or timeline boundaries...", fontSize = 13.sp) },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(100.dp)
+                                        .onFocusChanged { isMessageFocused = it.isFocused }
+                                        .testTag("inquiry_message"),
+                                    placeholder = {
+                                        if (!isMessageFocused) {
+                                            Text("Outline your technical bottlenecks, platform goals, or timeline boundaries...", fontSize = 13.sp)
+                                        }
+                                    },
                                     maxLines = 5,
                                     shape = RoundedCornerShape(10.dp)
                                 )
