@@ -2194,190 +2194,176 @@ fun ContactUsView(viewModel: AppViewModel) {
                     } else {
                         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             // YOUR NAME *
-                            Column {
-                                Text("YOUR NAME *", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                Spacer(modifier = Modifier.height(4.dp))
-                                OutlinedTextField(
-                                    value = name,
-                                    onValueChange = { 
-                                        if (it.length <= 50) {
-                                            name = it 
-                                            if (it.isNotBlank()) nameError = null
-                                        }
-                                    },
-                                    isError = nameError != null,
-                                    supportingText = {
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.SpaceBetween
-                                        ) {
-                                            Text(nameError ?: "", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-                                            Text("${name.length}/50", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                        }
-                                    },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .onFocusChanged { isNameFocused = it.isFocused }
-                                        .testTag("inquiry_name"),
-                                    placeholder = {
-                                        if (!isNameFocused) {
-                                            Text("e.g. John Doe", fontSize = 13.sp)
-                                        }
-                                    },
-                                    singleLine = true,
-                                    shape = RoundedCornerShape(10.dp)
-                                )
-                            }
+                            OutlinedTextField(
+                                value = name,
+                                onValueChange = { 
+                                    if (it.length <= 50) {
+                                        name = it 
+                                        if (it.isNotBlank()) nameError = null
+                                    }
+                                },
+                                label = { Text("Your Name *") },
+                                isError = nameError != null,
+                                supportingText = {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text(nameError ?: "", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                                        Text("${name.length}/50", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .onFocusChanged { isNameFocused = it.isFocused }
+                                    .testTag("inquiry_name"),
+                                placeholder = {
+                                    if (!isNameFocused) {
+                                        Text("e.g. John Doe", fontSize = 13.sp)
+                                    }
+                                },
+                                singleLine = true,
+                                shape = RoundedCornerShape(10.dp)
+                            )
 
                             // EMAIL ADDRESS *
-                            Column {
-                                Text("EMAIL ADDRESS *", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                Spacer(modifier = Modifier.height(4.dp))
-                                OutlinedTextField(
-                                    value = email,
-                                    onValueChange = { 
-                                        if (it.length <= 50) {
-                                            email = it 
-                                            if (it.isNotBlank() && isValidEmail(it)) emailError = null
-                                        }
-                                    },
-                                    isError = emailError != null,
-                                    supportingText = {
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.SpaceBetween
-                                        ) {
-                                            Text(emailError ?: "", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-                                            Text("${email.length}/50", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                        }
-                                    },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .onFocusChanged { isEmailFocused = it.isFocused }
-                                        .testTag("inquiry_email"),
-                                    placeholder = {
-                                        if (!isEmailFocused) {
-                                            Text("e.g. john@company.com", fontSize = 13.sp)
-                                        }
-                                    },
-                                    singleLine = true,
-                                    shape = RoundedCornerShape(10.dp)
-                                )
-                            }
+                            OutlinedTextField(
+                                value = email,
+                                onValueChange = { 
+                                    if (it.length <= 50) {
+                                        email = it 
+                                        if (it.isNotBlank() && isValidEmail(it)) emailError = null
+                                    }
+                                },
+                                label = { Text("Email Address *") },
+                                isError = emailError != null,
+                                supportingText = {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text(emailError ?: "", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                                        Text("${email.length}/50", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .onFocusChanged { isEmailFocused = it.isFocused }
+                                    .testTag("inquiry_email"),
+                                placeholder = {
+                                    if (!isEmailFocused) {
+                                        Text("e.g. john@company.com", fontSize = 13.sp)
+                                    }
+                                },
+                                singleLine = true,
+                                shape = RoundedCornerShape(10.dp)
+                            )
 
                             // COMPANY / ORG
-                            Column {
-                                Text("COMPANY / ORG", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                Spacer(modifier = Modifier.height(4.dp))
-                                OutlinedTextField(
-                                    value = company,
-                                    onValueChange = { 
-                                        if (it.length <= 50) {
-                                            company = it 
-                                        }
-                                    },
-                                    supportingText = {
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.End
-                                        ) {
-                                            Text("${company.length}/50", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                        }
-                                    },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .onFocusChanged { isCompanyFocused = it.isFocused }
-                                        .testTag("inquiry_company"),
-                                    placeholder = {
-                                        if (!isCompanyFocused) {
-                                            Text("e.g. Acme Corp", fontSize = 13.sp)
-                                        }
-                                    },
-                                    singleLine = true,
-                                    shape = RoundedCornerShape(10.dp)
-                                )
-                            }
+                            OutlinedTextField(
+                                value = company,
+                                onValueChange = { 
+                                    if (it.length <= 50) {
+                                        company = it 
+                                    }
+                                },
+                                label = { Text("Company / Org") },
+                                supportingText = {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.End
+                                    ) {
+                                        Text("${company.length}/50", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .onFocusChanged { isCompanyFocused = it.isFocused }
+                                    .testTag("inquiry_company"),
+                                placeholder = {
+                                    if (!isCompanyFocused) {
+                                        Text("e.g. Acme Corp", fontSize = 13.sp)
+                                    }
+                                },
+                                singleLine = true,
+                                shape = RoundedCornerShape(10.dp)
+                            )
 
                             // CONSULTING SERVICE REQUIRED
-                            Column {
-                                Text("CONSULTING SERVICE REQUIRED", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                Spacer(modifier = Modifier.height(4.dp))
-                                BoxWithConstraints(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable { dropdownExpanded = !dropdownExpanded }
+                            BoxWithConstraints(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { dropdownExpanded = !dropdownExpanded }
+                            ) {
+                                val menuWidth = maxWidth
+                                OutlinedTextField(
+                                    value = selectedService,
+                                    onValueChange = {},
+                                    readOnly = true,
+                                    enabled = false,
+                                    label = { Text("Consulting Service Required *") },
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                                        disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        disabledBorderColor = MaterialTheme.colorScheme.outline,
+                                        disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                    ),
+                                    modifier = Modifier.fillMaxWidth().testTag("inquiry_service"),
+                                    shape = RoundedCornerShape(10.dp),
+                                    trailingIcon = {
+                                        Icon(Icons.Default.ArrowDropDown, "Select Service")
+                                    }
+                                )
+                                DropdownMenu(
+                                    expanded = dropdownExpanded,
+                                    onDismissRequest = { dropdownExpanded = false },
+                                    modifier = Modifier.width(menuWidth)
                                 ) {
-                                    val menuWidth = maxWidth
-                                    OutlinedTextField(
-                                        value = selectedService,
-                                        onValueChange = {},
-                                        readOnly = true,
-                                        enabled = false,
-                                        colors = OutlinedTextFieldDefaults.colors(
-                                            disabledTextColor = MaterialTheme.colorScheme.onSurface,
-                                            disabledBorderColor = MaterialTheme.colorScheme.outline,
-                                            disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
-                                        ),
-                                        modifier = Modifier.fillMaxWidth().testTag("inquiry_service"),
-                                        shape = RoundedCornerShape(10.dp),
-                                        trailingIcon = {
-                                            Icon(Icons.Default.ArrowDropDown, "Select Service")
-                                        }
-                                    )
-                                    DropdownMenu(
-                                        expanded = dropdownExpanded,
-                                        onDismissRequest = { dropdownExpanded = false },
-                                        modifier = Modifier.width(menuWidth)
-                                    ) {
-                                        serviceOptions.forEach { option ->
-                                            DropdownMenuItem(
-                                                text = { Text(option, fontSize = 12.sp) },
-                                                onClick = {
-                                                    selectedService = option
-                                                    dropdownExpanded = false
-                                                }
-                                            )
-                                        }
+                                    serviceOptions.forEach { option ->
+                                        DropdownMenuItem(
+                                            text = { Text(option, fontSize = 12.sp) },
+                                            onClick = {
+                                                selectedService = option
+                                                dropdownExpanded = false
+                                            }
+                                        )
                                     }
                                 }
                             }
 
                             // MESSAGE DESCRIPTION *
-                            Column {
-                                Text("MESSAGE DESCRIPTION *", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                Spacer(modifier = Modifier.height(4.dp))
-                                OutlinedTextField(
-                                    value = messageDescription,
-                                    onValueChange = { 
-                                        if (it.length <= 250) {
-                                            messageDescription = it 
-                                            if (it.isNotBlank()) messageError = null
-                                        }
-                                    },
-                                    isError = messageError != null,
-                                    supportingText = {
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.SpaceBetween
-                                        ) {
-                                            Text(messageError ?: "", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-                                            Text("${messageDescription.length}/250", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                        }
-                                    },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(100.dp)
-                                        .onFocusChanged { isMessageFocused = it.isFocused }
-                                        .testTag("inquiry_message"),
-                                    placeholder = {
-                                        if (!isMessageFocused) {
-                                            Text("Outline your technical bottlenecks, platform goals, or timeline boundaries...", fontSize = 13.sp)
-                                        }
-                                    },
-                                    maxLines = 5,
-                                    shape = RoundedCornerShape(10.dp)
-                                )
-                            }
+                            OutlinedTextField(
+                                value = messageDescription,
+                                onValueChange = { 
+                                    if (it.length <= 250) {
+                                        messageDescription = it 
+                                        if (it.isNotBlank()) messageError = null
+                                    }
+                                },
+                                label = { Text("Message Description *") },
+                                isError = messageError != null,
+                                supportingText = {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text(messageError ?: "", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                                        Text("${messageDescription.length}/250", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(100.dp)
+                                    .onFocusChanged { isMessageFocused = it.isFocused }
+                                    .testTag("inquiry_message"),
+                                placeholder = {
+                                    if (!isMessageFocused) {
+                                        Text("Outline your technical bottlenecks, platform goals, or timeline boundaries...", fontSize = 13.sp)
+                                    }
+                                },
+                                maxLines = 5,
+                                shape = RoundedCornerShape(10.dp)
+                            )
 
                             Spacer(modifier = Modifier.height(6.dp))
 
