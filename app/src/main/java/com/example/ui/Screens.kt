@@ -1716,27 +1716,12 @@ fun InsightsScreen(
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(article.readTime, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
-                        Row {
-                            IconButton(onClick = { onToggleBookmark(article.id) }) {
-                                Icon(
-                                    imageVector = if (isSaved) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
-                                    contentDescription = "Bookmark",
-                                    tint = if (isSaved) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            IconButton(
-                                onClick = {
-                                    val sendIntent = Intent().apply {
-                                        action = Intent.ACTION_SEND
-                                        putExtra(Intent.EXTRA_TEXT, "Check out this enterprise tech insight from Vaan Consulting: ${article.title}\n\n${article.summary}\n\nRead more at https://www.vaanconsulting.com/insights")
-                                        type = "text/plain"
-                                    }
-                                    val shareIntent = Intent.createChooser(sendIntent, null)
-                                    context.startActivity(shareIntent)
-                                }
-                            ) {
-                                Icon(Icons.Default.Share, "Share", tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
+                        IconButton(onClick = { onToggleBookmark(article.id) }) {
+                            Icon(
+                                imageVector = if (isSaved) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
+                                contentDescription = "Bookmark",
+                                tint = if (isSaved) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                     }
                     Spacer(modifier = Modifier.height(12.dp))
