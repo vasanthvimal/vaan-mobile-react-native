@@ -1,5 +1,5 @@
 {
-  "name": "Vaan Consulting",
+  "name": "Vaan",
   "description": "Mobile app for Vaan Consulting to seamlessly sync client meeting schedules, inquiries, appointments, and automated email notifications.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
