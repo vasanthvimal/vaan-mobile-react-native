@@ -1356,7 +1356,6 @@ fun ServicesScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(filteredServices) { service ->
-                    val isBookmarked = bookmarkedServices.contains(service.id)
                     Card(
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
@@ -1369,34 +1368,21 @@ fun ServicesScreen(
                         Column(modifier = Modifier.padding(16.dp)) {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(36.dp)
-                                            .clip(CircleShape)
-                                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Icon(service.icon, service.title, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
-                                    }
-                                    Spacer(modifier = Modifier.width(12.dp))
-                                    Column {
-                                        Text(service.title, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = MaterialTheme.colorScheme.onSurface)
-                                        Text(service.subtitle, fontSize = 11.sp, color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.Medium)
-                                    }
-                                }
-                                IconButton(
-                                    onClick = { onToggleBookmark(service.id) },
-                                    modifier = Modifier.testTag("bookmark_service_${service.id}")
+                                Box(
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
+                                    contentAlignment = Alignment.Center
                                 ) {
-                                    Icon(
-                                        imageVector = if (isBookmarked) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
-                                        contentDescription = "Bookmark",
-                                        tint = if (isBookmarked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
+                                    Icon(service.icon, service.title, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                                }
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(service.title, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = MaterialTheme.colorScheme.onSurface)
+                                    Text(service.subtitle, fontSize = 11.sp, color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.Medium)
                                 }
                             }
                             Spacer(modifier = Modifier.height(8.dp))
@@ -1433,7 +1419,6 @@ fun ServicesScreen(
 
     // Service Detail Overlay
     selectedServiceForDetails?.let { service ->
-        val isBookmarked = bookmarkedServices.contains(service.id)
         Dialog(onDismissRequest = { selectedServiceForDetails = null }) {
             Card(
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -1445,29 +1430,19 @@ fun ServicesScreen(
                 Column(modifier = Modifier.padding(24.dp)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(
-                                modifier = Modifier
-                                    .size(40.dp)
-                                    .clip(CircleShape)
-                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(service.icon, service.title, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
-                            }
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Text(service.title, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp, color = MaterialTheme.colorScheme.onSurface)
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(service.icon, service.title, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
                         }
-                        IconButton(onClick = { onToggleBookmark(service.id) }) {
-                            Icon(
-                                imageVector = if (isBookmarked) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
-                                contentDescription = "Bookmark",
-                                tint = if (isBookmarked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(service.title, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(service.subtitle, fontWeight = FontWeight.Bold, fontSize = 13.sp, color = MaterialTheme.colorScheme.secondary)
@@ -2140,7 +2115,7 @@ fun ContactUsView(viewModel: AppViewModel) {
                         }
                     }) {
                         Text("WEBSITE", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 9.sp, fontWeight = FontWeight.Bold)
-                        Text("https://vaanconsulting.com", color = Color(0xFF38BDF8), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        Text("vaanconsulting.com", color = Color(0xFF38BDF8), fontSize = 14.sp, fontWeight = FontWeight.Bold)
                     }
                     
                     Spacer(modifier = Modifier.height(16.dp))
