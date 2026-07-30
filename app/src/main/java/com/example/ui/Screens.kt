@@ -25,6 +25,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -1573,47 +1575,10 @@ fun MainAppScreen(viewModel: AppViewModel) {
                 )
             },
             bottomBar = {
-                NavigationBar(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    tonalElevation = 8.dp,
-                    windowInsets = WindowInsets.navigationBars
-                ) {
-                    NavigationBarItem(
-                        selected = currentTab == "home",
-                        onClick = { currentTab = "home" },
-                        icon = { Icon(Icons.Default.Dashboard, contentDescription = "Home") },
-                        label = { Text("Home", fontSize = 10.sp, fontWeight = FontWeight.Bold) },
-                        modifier = Modifier.testTag("nav_home")
-                    )
-                    NavigationBarItem(
-                        selected = currentTab == "services",
-                        onClick = { currentTab = "services" },
-                        icon = { Icon(Icons.Default.CloudQueue, contentDescription = "Services") },
-                        label = { Text("Services", fontSize = 10.sp, fontWeight = FontWeight.Bold) },
-                        modifier = Modifier.testTag("nav_services")
-                    )
-                    NavigationBarItem(
-                        selected = currentTab == "insights",
-                        onClick = { currentTab = "insights" },
-                        icon = { Icon(Icons.Default.Language, contentDescription = "Insights") },
-                        label = { Text("Blog", fontSize = 10.sp, fontWeight = FontWeight.Bold) },
-                        modifier = Modifier.testTag("nav_insights")
-                    )
-                    NavigationBarItem(
-                        selected = currentTab == "chatbot",
-                        onClick = { currentTab = "chatbot" },
-                        icon = { Icon(Icons.Default.Chat, contentDescription = "VaanAI Chat") },
-                        label = { Text("VaanAI Chat", fontSize = 10.sp, fontWeight = FontWeight.Bold) },
-                        modifier = Modifier.testTag("nav_chatbot")
-                    )
-                    NavigationBarItem(
-                        selected = currentTab == "bookings",
-                        onClick = { currentTab = "bookings" },
-                        icon = { Icon(Icons.Default.Schedule, contentDescription = "Bookings Portal") },
-                        label = { Text("Bookings", fontSize = 10.sp, fontWeight = FontWeight.Bold) },
-                        modifier = Modifier.testTag("nav_bookings")
-                    )
-                }
+                IphoneGlassyBottomBar(
+                    currentTab = currentTab,
+                    onTabSelected = { currentTab = it }
+                )
             },
             containerColor = MaterialTheme.colorScheme.background
         ) { innerPadding ->
@@ -1622,44 +1587,232 @@ fun MainAppScreen(viewModel: AppViewModel) {
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
-                when (currentTab) {
-                    "home" -> HomeScreen(
-                        meetings = meetings,
-                        inquiries = inquiries,
-                        appointments = appointments,
-                        emailLogs = emailLogs,
-                        autoEmailEnabled = autoEmailEnabled,
-                        onNavigateToTab = { currentTab = it },
-                        onBookServiceCategory = { serviceTitle ->
-                            selectedServiceCategoryForBooking = serviceTitle
-                            currentTab = "bookings"
+                AnimatedContent(
+                    targetState = currentTab,
+                    modifier = Modifier.fillMaxSize(),
+                    transitionSpec = {
+                        (fadeIn(animationSpec = tween(280, easing = LinearOutSlowInEasing)) +
+                            scaleIn(initialScale = 0.97f, animationSpec = tween(280))) togetherWith
+                            (fadeOut(animationSpec = tween(200, easing = FastOutLinearInEasing)) +
+                                scaleOut(targetScale = 1.02f, animationSpec = tween(200)))
+                    },
+                    label = "pageTabTransition"
+                ) { targetTab ->
+                    when (targetTab) {
+                        "home" -> HomeScreen(
+                            meetings = meetings,
+                            inquiries = inquiries,
+                            appointments = appointments,
+                            emailLogs = emailLogs,
+                            autoEmailEnabled = autoEmailEnabled,
+                            onNavigateToTab = { currentTab = it },
+                            onBookServiceCategory = { serviceTitle ->
+                                selectedServiceCategoryForBooking = serviceTitle
+                                currentTab = "bookings"
+                            }
+                        )
+                        "services" -> ServicesScreen(
+                            bookmarkedServices = bookmarkedServices,
+                            onToggleBookmark = { viewModel.toggleServiceBookmark(it) },
+                            onBookService = { serviceTitle ->
+                                selectedServiceCategoryForBooking = serviceTitle
+                                currentTab = "bookings"
+                            }
+                        )
+                        "insights" -> InsightsScreen(
+                            bookmarkedArticles = bookmarkedArticles,
+                            onToggleBookmark = { viewModel.toggleArticleBookmark(it) }
+                        )
+                        "chatbot" -> VaanAiChatScreen(viewModel = viewModel)
+                        "bookings" -> PortalScreen(
+                            meetings = meetings,
+                            inquiries = inquiries,
+                            appointments = appointments,
+                            emailLogs = emailLogs,
+                            autoEmailEnabled = autoEmailEnabled,
+                            onToggleAutoEmail = { viewModel.setAutoEmailEnabled(it) },
+                            onNavigateToTab = { currentTab = it },
+                            selectedServiceForBooking = selectedServiceCategoryForBooking,
+                            onClearBookingSelection = { selectedServiceCategoryForBooking = "" },
+                            viewModel = viewModel
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+// =========================================================================
+// IPHONE GLASSY BOTTOM NAVIGATION BAR COMPOSABLE
+// =========================================================================
+data class NavTabItem(
+    val id: String,
+    val label: String,
+    val icon: ImageVector,
+    val testTag: String
+)
+
+@Composable
+fun IphoneGlassyBottomBar(
+    currentTab: String,
+    onTabSelected: (String) -> Unit
+) {
+    val navItems = listOf(
+        NavTabItem("home", "Home", Icons.Default.Dashboard, "nav_home"),
+        NavTabItem("services", "Services", Icons.Default.CloudQueue, "nav_services"),
+        NavTabItem("insights", "Blog", Icons.Default.Language, "nav_insights"),
+        NavTabItem("chatbot", "VaanAI Chat", Icons.Default.Chat, "nav_chatbot"),
+        NavTabItem("bookings", "Bookings", Icons.Default.Schedule, "nav_bookings")
+    )
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .navigationBarsPadding()
+            .padding(horizontal = 10.dp, vertical = 6.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Surface(
+            shape = RoundedCornerShape(32.dp),
+            color = Color(0xDD0B132B), // Frosted Glassy Dark Slate
+            shadowElevation = 16.dp,
+            modifier = Modifier
+                .fillMaxWidth()
+                .drawBehind {
+                    // Top edge glass light-reflection highlight
+                    drawRoundRect(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                Color.White.copy(alpha = 0.35f),
+                                Color.White.copy(alpha = 0.06f),
+                                Color(0x2038BDF8)
+                            )
+                        ),
+                        cornerRadius = androidx.compose.ui.geometry.CornerRadius(32.dp.toPx(), 32.dp.toPx())
+                    )
+                }
+                .border(
+                    width = 1.25.dp,
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            Color.White.copy(alpha = 0.45f),
+                            Color(0x4038BDF8),
+                            Color.White.copy(alpha = 0.12f)
+                        )
+                    ),
+                    shape = RoundedCornerShape(32.dp)
+                )
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp, vertical = 6.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                navItems.forEach { item ->
+                    val isSelected = currentTab == item.id
+
+                    // Animated Icon Scale with spring physics
+                    val scale by animateFloatAsState(
+                        targetValue = if (isSelected) 1.20f else 1.0f,
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                            stiffness = Spring.StiffnessLow
+                        ),
+                        label = "navIconScale"
+                    )
+
+                    val interactionSource = remember { MutableInteractionSource() }
+                    val isPressed by interactionSource.collectIsPressedAsState()
+                    val pressScale by animateFloatAsState(
+                        targetValue = if (isPressed) 0.90f else 1.0f,
+                        animationSpec = spring(stiffness = Spring.StiffnessHigh),
+                        label = "navPressScale"
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .testTag(item.testTag)
+                            .graphicsLayer {
+                                scaleX = pressScale
+                                scaleY = pressScale
+                            }
+                            .clip(RoundedCornerShape(22.dp))
+                            .background(
+                                if (isSelected) {
+                                    Brush.verticalGradient(
+                                        colors = listOf(
+                                            Color(0x4538BDF8),
+                                            Color(0x202DD4BF)
+                                        )
+                                    )
+                                } else {
+                                    SolidColor(Color.Transparent)
+                                }
+                            )
+                            .border(
+                                width = if (isSelected) 1.dp else 0.dp,
+                                brush = if (isSelected) {
+                                    Brush.verticalGradient(
+                                        colors = listOf(
+                                            Color(0x9038BDF8),
+                                            Color(0x402DD4BF)
+                                        )
+                                    )
+                                } else {
+                                    SolidColor(Color.Transparent)
+                                },
+                                shape = RoundedCornerShape(22.dp)
+                            )
+                            .clickable(
+                                interactionSource = interactionSource,
+                                indication = null,
+                                onClick = { onTabSelected(item.id) }
+                            )
+                            .padding(vertical = 8.dp, horizontal = 2.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier.graphicsLayer {
+                                    scaleX = scale
+                                    scaleY = scale
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = item.icon,
+                                    contentDescription = item.label,
+                                    tint = if (isSelected) Color(0xFF38BDF8) else Color(0xFF94A3B8).copy(alpha = 0.65f),
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = item.label,
+                                fontSize = 9.sp,
+                                fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Medium,
+                                color = if (isSelected) Color.White else Color(0xFF94A3B8).copy(alpha = 0.65f),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            if (isSelected) {
+                                Spacer(modifier = Modifier.height(3.dp))
+                                Box(
+                                    modifier = Modifier
+                                        .size(4.dp)
+                                        .clip(CircleShape)
+                                        .background(Color(0xFF38BDF8))
+                                )
+                            }
                         }
-                    )
-                    "services" -> ServicesScreen(
-                        bookmarkedServices = bookmarkedServices,
-                        onToggleBookmark = { viewModel.toggleServiceBookmark(it) },
-                        onBookService = { serviceTitle ->
-                            selectedServiceCategoryForBooking = serviceTitle
-                            currentTab = "bookings"
-                        }
-                    )
-                    "insights" -> InsightsScreen(
-                        bookmarkedArticles = bookmarkedArticles,
-                        onToggleBookmark = { viewModel.toggleArticleBookmark(it) }
-                    )
-                    "chatbot" -> VaanAiChatScreen(viewModel = viewModel)
-                    "bookings" -> PortalScreen(
-                        meetings = meetings,
-                        inquiries = inquiries,
-                        appointments = appointments,
-                        emailLogs = emailLogs,
-                        autoEmailEnabled = autoEmailEnabled,
-                        onToggleAutoEmail = { viewModel.setAutoEmailEnabled(it) },
-                        onNavigateToTab = { currentTab = it },
-                        selectedServiceForBooking = selectedServiceCategoryForBooking,
-                        onClearBookingSelection = { selectedServiceCategoryForBooking = "" },
-                        viewModel = viewModel
-                    )
+                    }
                 }
             }
         }
