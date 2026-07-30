@@ -1686,7 +1686,7 @@ fun IphoneGlassyBottomBar(
                             colors = listOf(
                                 Color.White.copy(alpha = 0.35f),
                                 Color.White.copy(alpha = 0.06f),
-                                Color(0x2038BDF8)
+                                Color(0x202DD4BF)
                             )
                         ),
                         cornerRadius = androidx.compose.ui.geometry.CornerRadius(32.dp.toPx(), 32.dp.toPx())
@@ -1697,7 +1697,7 @@ fun IphoneGlassyBottomBar(
                     brush = Brush.linearGradient(
                         colors = listOf(
                             Color.White.copy(alpha = 0.45f),
-                            Color(0x4038BDF8),
+                            Color(0x402DD4BF),
                             Color.White.copy(alpha = 0.12f)
                         )
                     ),
@@ -1745,8 +1745,8 @@ fun IphoneGlassyBottomBar(
                                 if (isSelected) {
                                     Brush.verticalGradient(
                                         colors = listOf(
-                                            Color(0x4538BDF8),
-                                            Color(0x202DD4BF)
+                                            Color(0x552DD4BF),
+                                            Color(0x2510B981)
                                         )
                                     )
                                 } else {
@@ -1758,8 +1758,8 @@ fun IphoneGlassyBottomBar(
                                 brush = if (isSelected) {
                                     Brush.verticalGradient(
                                         colors = listOf(
-                                            Color(0x9038BDF8),
-                                            Color(0x402DD4BF)
+                                            Color(0xA02DD4BF),
+                                            Color(0x5010B981)
                                         )
                                     )
                                 } else {
@@ -1789,7 +1789,7 @@ fun IphoneGlassyBottomBar(
                                 Icon(
                                     imageVector = item.icon,
                                     contentDescription = item.label,
-                                    tint = if (isSelected) Color(0xFF38BDF8) else Color(0xFF94A3B8).copy(alpha = 0.65f),
+                                    tint = if (isSelected) Color(0xFF2DD4BF) else Color(0xFF94A3B8).copy(alpha = 0.65f),
                                     modifier = Modifier.size(20.dp)
                                 )
                             }
@@ -1808,7 +1808,7 @@ fun IphoneGlassyBottomBar(
                                     modifier = Modifier
                                         .size(4.dp)
                                         .clip(CircleShape)
-                                        .background(Color(0xFF38BDF8))
+                                        .background(Color(0xFF2DD4BF))
                                 )
                             }
                         }
@@ -3559,9 +3559,9 @@ fun InsightsScreen(
                 ) {
                     Text(
                         text = cat,
-                        color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = if (isSelected) Color(0xFF0F172A) else MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.ExtraBold
                     )
                 }
             }
@@ -4669,7 +4669,7 @@ fun ConsultationBookingForm(
                                     .clickable { serviceType = cat }
                                     .padding(horizontal = 12.dp, vertical = 8.dp)
                             ) {
-                                Text(cat, color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                Text(cat, color = if (isSelected) Color(0xFF0F172A) else MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
                             }
                         }
                     }
@@ -4970,8 +4970,8 @@ fun SchedulesScreen(
                             Text(
                                 text = status,
                                 fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                                fontWeight = FontWeight.ExtraBold,
+                                color = if (isSelected) Color(0xFF0F172A) else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
@@ -6133,7 +6133,7 @@ fun AddAppointmentDialog(onDismiss: () -> Unit, onConfirm: (String, String, Stri
                                     .padding(vertical = 8.dp),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text(text = s.split(" ").first(), color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                Text(text = s.split(" ").first(), color = if (isSelected) Color(0xFF0F172A) else MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
                             }
                         }
                     }
@@ -6153,7 +6153,7 @@ fun AddAppointmentDialog(onDismiss: () -> Unit, onConfirm: (String, String, Stri
                                     .padding(vertical = 8.dp),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text(text = s.split(" ").first(), color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                Text(text = s.split(" ").first(), color = if (isSelected) Color(0xFF0F172A) else MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
                             }
                         }
                     }
