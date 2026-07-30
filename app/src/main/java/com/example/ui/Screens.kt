@@ -25,11 +25,19 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.hoverable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
@@ -38,6 +46,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.example.data.Appointment
 import com.example.data.ClientInquiry
 import com.example.data.ClientMeeting
@@ -48,6 +57,7 @@ import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.text.style.TextAlign
 import java.text.SimpleDateFormat
 import java.util.*
@@ -73,15 +83,1217 @@ data class VaanService(
     val subtitle: String,
     val description: String,
     val platforms: List<String>,
-    val details: List<String>
+    val details: List<String>,
+    val accentColor: Color = Color(0xFF38BDF8)
+)
+
+data class PillarObjective(
+    val title: String,
+    val desc: String
+)
+
+data class PillarPhase(
+    val phase: String,
+    val title: String,
+    val desc: String
+)
+
+data class PillarItem(
+    val num: String,
+    val title: String,
+    val desc: String,
+    val accentColor: Color,
+    val overview: String = "",
+    val objectives: List<PillarObjective> = emptyList(),
+    val roadmap: List<PillarPhase> = emptyList(),
+    val deliverables: List<String> = emptyList()
+)
+
+data class CapabilitySolution(
+    val title: String,
+    val desc: String
 )
 
 data class VaanCapabilityItem(
     val icon: ImageVector,
     val title: String,
     val desc: String,
-    val tags: List<String>
+    val tags: List<String>,
+    val accentColor: Color = Color(0xFF14B8A6),
+    val overview: String = "",
+    val solutions: List<CapabilitySolution> = emptyList(),
+    val techStackDetails: Map<String, String> = emptyMap(),
+    val strategicOutcomes: List<String> = emptyList()
 )
+
+@Composable
+fun InteractiveValuePillarRow(
+    pillar: PillarItem,
+    onClick: () -> Unit = {}
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isHovered by interactionSource.collectIsHoveredAsState()
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val isActive = isHovered || isPressed
+
+    val animatedGlowAlpha by animateFloatAsState(
+        targetValue = if (isActive) 0.22f else 0.08f,
+        animationSpec = tween(durationMillis = 250),
+        label = "pillarGlow"
+    )
+    val animatedBorderAlpha by animateFloatAsState(
+        targetValue = if (isActive) 0.85f else 0.45f,
+        animationSpec = tween(durationMillis = 250),
+        label = "pillarBorder"
+    )
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .drawBehind {
+                // Soft outer border glow with matching pillar color
+                drawRoundRect(
+                    color = pillar.accentColor.copy(alpha = if (isActive) 0.28f else 0.14f),
+                    topLeft = androidx.compose.ui.geometry.Offset(-2.dp.toPx(), -2.dp.toPx()),
+                    size = androidx.compose.ui.geometry.Size(size.width + 4.dp.toPx(), size.height + 4.dp.toPx()),
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(14.dp.toPx(), 14.dp.toPx())
+                )
+            }
+            .clip(RoundedCornerShape(12.dp))
+            .background(
+                Brush.horizontalGradient(
+                    colors = listOf(
+                        pillar.accentColor.copy(alpha = animatedGlowAlpha),
+                        Color.Transparent
+                    )
+                )
+            )
+            .border(
+                width = if (isActive) 1.5.dp else 1.dp,
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        pillar.accentColor.copy(alpha = animatedBorderAlpha),
+                        pillar.accentColor.copy(alpha = animatedBorderAlpha * 0.35f)
+                    )
+                ),
+                shape = RoundedCornerShape(12.dp)
+            )
+            .hoverable(interactionSource = interactionSource)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            )
+            .padding(horizontal = 12.dp, vertical = 10.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.Top,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = pillar.num,
+                color = pillar.accentColor,
+                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp,
+                modifier = Modifier.width(32.dp)
+            )
+            Column(modifier = Modifier.weight(1f)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = pillar.title,
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 14.sp,
+                        color = pillar.accentColor,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Box(
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(pillar.accentColor.copy(alpha = if (isActive) 0.25f else 0.12f))
+                            .border(1.dp, pillar.accentColor.copy(alpha = 0.35f), CircleShape)
+                            .padding(6.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                            contentDescription = "Open subpage",
+                            tint = pillar.accentColor,
+                            modifier = Modifier.size(13.dp)
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = pillar.desc,
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    lineHeight = 17.sp
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun InteractiveCapabilityCard(
+    quad: VaanCapabilityItem,
+    onClick: () -> Unit = {}
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isHovered by interactionSource.collectIsHoveredAsState()
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val isActive = isHovered || isPressed
+
+    val accent = quad.accentColor
+
+    val animatedGlowAlpha by animateFloatAsState(
+        targetValue = if (isActive) 0.25f else 0.08f,
+        animationSpec = tween(durationMillis = 250),
+        label = "cardGlow"
+    )
+    val animatedBorderAlpha by animateFloatAsState(
+        targetValue = if (isActive) 0.90f else 0.50f,
+        animationSpec = tween(durationMillis = 250),
+        label = "cardBorderAlpha"
+    )
+
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        shape = RoundedCornerShape(20.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = if (isActive) 6.dp else 2.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .drawBehind {
+                // Soft outer border backlight glow with matching accent color
+                drawRoundRect(
+                    color = accent.copy(alpha = if (isActive) 0.32f else 0.16f),
+                    topLeft = androidx.compose.ui.geometry.Offset(-2.dp.toPx(), -2.dp.toPx()),
+                    size = androidx.compose.ui.geometry.Size(size.width + 4.dp.toPx(), size.height + 4.dp.toPx()),
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(22.dp.toPx(), 22.dp.toPx())
+                )
+                // Radial backlight ambient glow behind card
+                drawRoundRect(
+                    brush = Brush.radialGradient(
+                        colors = listOf(
+                            accent.copy(alpha = if (isActive) 0.40f else 0.18f),
+                            Color.Transparent
+                        ),
+                        center = Offset(size.width * 0.85f, size.height * 0.2f),
+                        radius = size.width * 0.85f
+                    ),
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(20.dp.toPx(), 20.dp.toPx())
+                )
+            }
+            .border(
+                width = if (isActive) 2.dp else 1.25.dp,
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        accent.copy(alpha = animatedBorderAlpha),
+                        accent.copy(alpha = animatedBorderAlpha * 0.35f)
+                    )
+                ),
+                shape = RoundedCornerShape(20.dp)
+            )
+            .hoverable(interactionSource = interactionSource)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            )
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            accent.copy(alpha = animatedGlowAlpha),
+                            Color.Transparent
+                        )
+                    )
+                )
+                .padding(20.dp)
+        ) {
+            Column {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(if (isActive) accent else accent.copy(alpha = 0.18f))
+                            .border(
+                                width = 1.dp,
+                                color = accent.copy(alpha = 0.4f),
+                                shape = RoundedCornerShape(8.dp)
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = quad.icon,
+                            contentDescription = quad.title,
+                            tint = if (isActive) Color.Black else accent,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = quad.title,
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 16.sp,
+                        color = accent,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Box(
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(accent.copy(alpha = if (isActive) 0.25f else 0.12f))
+                            .border(1.dp, accent.copy(alpha = 0.35f), CircleShape)
+                            .padding(6.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                            contentDescription = "View subpage",
+                            tint = accent,
+                            modifier = Modifier.size(14.dp)
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = quad.desc,
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    lineHeight = 17.sp
+                )
+                Spacer(modifier = Modifier.height(14.dp))
+
+                // Tag row
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    quad.tags.forEach { tag ->
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(accent.copy(alpha = if (isActive) 0.22f else 0.08f))
+                                .border(
+                                    width = 1.dp,
+                                    color = accent.copy(alpha = if (isActive) 0.5f else 0.15f),
+                                    shape = RoundedCornerShape(6.dp)
+                                )
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        ) {
+                            Text(
+                                text = tag,
+                                color = accent,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// =========================================================================
+// PILLAR SUBPAGE DETAIL DIALOG
+// =========================================================================
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PillarDetailSubpageDialog(
+    pillar: PillarItem,
+    onDismiss: () -> Unit,
+    onBookConsultation: (String) -> Unit
+) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth(0.94f)
+                .fillMaxHeight(0.88f)
+                .clip(RoundedCornerShape(24.dp))
+                .border(1.25.dp, pillar.accentColor.copy(alpha = 0.5f), RoundedCornerShape(24.dp)),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                // Top Navigation Bar Header
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surface)
+                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            modifier = Modifier.weight(1f),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(pillar.accentColor.copy(alpha = 0.2f))
+                                    .padding(horizontal = 8.dp, vertical = 2.dp)
+                            ) {
+                                Text(
+                                    text = "PILLAR ${pillar.num}",
+                                    color = pillar.accentColor,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = pillar.title,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                lineHeight = 20.sp,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        IconButton(onClick = onDismiss, modifier = Modifier.size(36.dp)) {
+                            Icon(
+                                Icons.Default.Close,
+                                contentDescription = "Close subpage",
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+                }
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Hero Card
+                    item {
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                            shape = RoundedCornerShape(20.dp),
+                            border = BorderStroke(1.dp, pillar.accentColor.copy(alpha = 0.35f)),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(
+                                        Brush.verticalGradient(
+                                            colors = listOf(
+                                                pillar.accentColor.copy(alpha = 0.22f),
+                                                Color.Transparent
+                                            )
+                                        )
+                                    )
+                                    .padding(20.dp)
+                            ) {
+                                Column {
+                                    Text(
+                                        text = pillar.num,
+                                        fontSize = 32.sp,
+                                        fontWeight = FontWeight.Black,
+                                        color = pillar.accentColor
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = pillar.title,
+                                        fontSize = 22.sp,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text(
+                                        text = pillar.desc,
+                                        fontSize = 13.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        lineHeight = 19.sp
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    // Executive Summary
+                    if (pillar.overview.isNotEmpty()) {
+                        item {
+                            Column {
+                                Text(
+                                    text = "EXECUTIVE SUMMARY",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = pillar.accentColor,
+                                    letterSpacing = 1.2.sp
+                                )
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text(
+                                    text = pillar.overview,
+                                    fontSize = 13.sp,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    lineHeight = 19.sp
+                                )
+                            }
+                        }
+                    }
+
+                    // Objectives
+                    if (pillar.objectives.isNotEmpty()) {
+                        item {
+                            Text(
+                                text = "CORE OBJECTIVES & STRATEGY",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = pillar.accentColor,
+                                letterSpacing = 1.2.sp
+                            )
+                        }
+
+                        items(pillar.objectives) { obj ->
+                            Card(
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                                shape = RoundedCornerShape(12.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(14.dp),
+                                    verticalAlignment = Alignment.Top
+                                ) {
+                                    Icon(
+                                        Icons.Default.CheckCircle,
+                                        contentDescription = null,
+                                        tint = pillar.accentColor,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(10.dp))
+                                    Column {
+                                        Text(
+                                            text = obj.title,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 13.sp,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Spacer(modifier = Modifier.height(3.dp))
+                                        Text(
+                                            text = obj.desc,
+                                            fontSize = 12.sp,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            lineHeight = 17.sp
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Execution Roadmap
+                    if (pillar.roadmap.isNotEmpty()) {
+                        item {
+                            Text(
+                                text = "EXECUTION ROADMAP",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = pillar.accentColor,
+                                letterSpacing = 1.2.sp
+                            )
+                        }
+
+                        items(pillar.roadmap) { step ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.Top
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .clip(CircleShape)
+                                        .background(pillar.accentColor)
+                                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                                ) {
+                                    Text(
+                                        text = step.phase,
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.Black
+                                    )
+                                }
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = step.title,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 13.sp,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(
+                                        text = step.desc,
+                                        fontSize = 12.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        lineHeight = 16.sp
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    // Deliverables
+                    if (pillar.deliverables.isNotEmpty()) {
+                        item {
+                            Card(
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                                shape = RoundedCornerShape(16.dp),
+                                border = BorderStroke(1.dp, pillar.accentColor.copy(alpha = 0.2f)),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Column(modifier = Modifier.padding(16.dp)) {
+                                    Text(
+                                        text = "KEY DELIVERABLES",
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = pillar.accentColor,
+                                        letterSpacing = 1.2.sp
+                                    )
+                                    Spacer(modifier = Modifier.height(10.dp))
+                                    pillar.deliverables.forEach { item ->
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier.padding(vertical = 4.dp)
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Verified,
+                                                contentDescription = null,
+                                                tint = pillar.accentColor,
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Text(
+                                                text = item,
+                                                fontSize = 12.sp,
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Close Button
+                    item {
+                        Button(
+                            onClick = onDismiss,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(50.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = pillar.accentColor),
+                            shape = RoundedCornerShape(14.dp)
+                        ) {
+                            Icon(Icons.Default.Close, contentDescription = null, tint = Color.Black)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Close details",
+                                color = Color.Black,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// =========================================================================
+// CAPABILITY SUBPAGE DETAIL DIALOG
+// =========================================================================
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CapabilityDetailSubpageDialog(
+    capability: VaanCapabilityItem,
+    onDismiss: () -> Unit,
+    onBookConsultation: (String) -> Unit
+) {
+    val accent = capability.accentColor
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth(0.94f)
+                .fillMaxHeight(0.88f)
+                .clip(RoundedCornerShape(24.dp))
+                .border(1.25.dp, accent.copy(alpha = 0.5f), RoundedCornerShape(24.dp)),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                // Top Navigation Bar Header
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surface)
+                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = capability.title,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            lineHeight = 20.sp,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        IconButton(onClick = onDismiss, modifier = Modifier.size(36.dp)) {
+                            Icon(
+                                Icons.Default.Close,
+                                contentDescription = "Close subpage",
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+                }
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Hero Card
+                    item {
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                            shape = RoundedCornerShape(20.dp),
+                            border = BorderStroke(1.dp, accent.copy(alpha = 0.35f)),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(
+                                        Brush.verticalGradient(
+                                            colors = listOf(
+                                                accent.copy(alpha = 0.22f),
+                                                Color.Transparent
+                                            )
+                                        )
+                                    )
+                                    .padding(20.dp)
+                            ) {
+                                Column {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(48.dp)
+                                                .clip(RoundedCornerShape(12.dp))
+                                                .background(accent)
+                                                .padding(10.dp),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                imageVector = capability.icon,
+                                                contentDescription = capability.title,
+                                                tint = Color.Black,
+                                                modifier = Modifier.size(26.dp)
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.width(12.dp))
+                                        Text(
+                                            text = capability.title,
+                                            fontSize = 20.sp,
+                                            fontWeight = FontWeight.ExtraBold,
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.height(12.dp))
+                                    Text(
+                                        text = capability.desc,
+                                        fontSize = 13.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        lineHeight = 19.sp
+                                    )
+                                    Spacer(modifier = Modifier.height(14.dp))
+                                    // Tags
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .horizontalScroll(rememberScrollState()),
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                    ) {
+                                        capability.tags.forEach { tag ->
+                                            Box(
+                                                modifier = Modifier
+                                                    .clip(RoundedCornerShape(6.dp))
+                                                    .background(accent.copy(alpha = 0.18f))
+                                                    .border(1.dp, accent.copy(alpha = 0.4f), RoundedCornerShape(6.dp))
+                                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                                            ) {
+                                                Text(
+                                                    text = tag,
+                                                    color = accent,
+                                                    fontSize = 11.sp,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Executive Overview
+                    if (capability.overview.isNotEmpty()) {
+                        item {
+                            Column {
+                                Text(
+                                    text = "CAPABILITY OVERVIEW",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = accent,
+                                    letterSpacing = 1.2.sp
+                                )
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text(
+                                    text = capability.overview,
+                                    fontSize = 13.sp,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    lineHeight = 19.sp
+                                )
+                            }
+                        }
+                    }
+
+                    // Modern Solutions
+                    if (capability.solutions.isNotEmpty()) {
+                        item {
+                            Text(
+                                text = "MODERN ARCHITECTURE SOLUTIONS",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = accent,
+                                letterSpacing = 1.2.sp
+                            )
+                        }
+
+                        items(capability.solutions) { sol ->
+                            Card(
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                                shape = RoundedCornerShape(12.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(14.dp),
+                                    verticalAlignment = Alignment.Top
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(8.dp)
+                                            .clip(CircleShape)
+                                            .background(accent)
+                                            .padding(2.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Column {
+                                        Text(
+                                            text = sol.title,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 13.sp,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Spacer(modifier = Modifier.height(3.dp))
+                                        Text(
+                                            text = sol.desc,
+                                            fontSize = 12.sp,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            lineHeight = 17.sp
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Tech Stack Details
+                    if (capability.techStackDetails.isNotEmpty()) {
+                        item {
+                            Card(
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                                shape = RoundedCornerShape(16.dp),
+                                border = BorderStroke(1.dp, accent.copy(alpha = 0.2f)),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Column(modifier = Modifier.padding(16.dp)) {
+                                    Text(
+                                        text = "TECHNOLOGY STACK ECOSYSTEM",
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = accent,
+                                        letterSpacing = 1.2.sp
+                                    )
+                                    Spacer(modifier = Modifier.height(10.dp))
+                                    capability.techStackDetails.forEach { (cat, stack) ->
+                                        Row(
+                                            modifier = Modifier.padding(vertical = 4.dp),
+                                            verticalAlignment = Alignment.Top
+                                        ) {
+                                            Text(
+                                                text = "$cat: ",
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 12.sp,
+                                                color = accent,
+                                                modifier = Modifier.width(100.dp)
+                                            )
+                                            Text(
+                                                text = stack,
+                                                fontSize = 12.sp,
+                                                color = MaterialTheme.colorScheme.onSurface,
+                                                modifier = Modifier.weight(1f)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Strategic Outcomes
+                    if (capability.strategicOutcomes.isNotEmpty()) {
+                        item {
+                            Column {
+                                Text(
+                                    text = "MEASURABLE ENTERPRISE OUTCOMES",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = accent,
+                                    letterSpacing = 1.2.sp
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                capability.strategicOutcomes.forEach { outcome ->
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.padding(vertical = 4.dp)
+                                    ) {
+                                        Icon(
+                                            Icons.Default.Verified,
+                                            contentDescription = null,
+                                            tint = accent,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(
+                                            text = outcome,
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Medium,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Close Button
+                    item {
+                        Button(
+                            onClick = onDismiss,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(50.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = accent),
+                            shape = RoundedCornerShape(14.dp)
+                        ) {
+                            Icon(Icons.Default.Close, contentDescription = null, tint = Color.Black)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Close details",
+                                color = Color.Black,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+data class MetricDetailItem(
+    val metric: String,
+    val label: String,
+    val color: Color,
+    val title: String,
+    val subtitle: String,
+    val overview: String,
+    val keyPoints: List<Pair<String, String>>,
+    val outcomes: List<String>
+)
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MetricDetailSubpageDialog(
+    metricItem: MetricDetailItem,
+    onDismiss: () -> Unit,
+    onBookConsultation: (String) -> Unit
+) {
+    val accent = metricItem.color
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth(0.94f)
+                .fillMaxHeight(0.88f)
+                .clip(RoundedCornerShape(24.dp))
+                .border(1.5.dp, accent.copy(alpha = 0.5f), RoundedCornerShape(24.dp)),
+            color = Color(0xFF0B132B)
+        ) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                // Header Bar
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(accent.copy(alpha = 0.25f), Color.Transparent)
+                            )
+                        )
+                        .padding(16.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            modifier = Modifier.weight(1f),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(accent.copy(alpha = 0.2f))
+                                    .border(1.dp, accent, RoundedCornerShape(12.dp))
+                                    .padding(horizontal = 10.dp, vertical = 6.dp)
+                            ) {
+                                Text(
+                                    text = metricItem.metric,
+                                    color = accent,
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Black
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = metricItem.title,
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    lineHeight = 19.sp,
+                                    color = Color.White
+                                )
+                                Text(
+                                    text = "TRACK RECORD & PERFORMANCE METRIC",
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = accent,
+                                    letterSpacing = 0.8.sp
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        IconButton(onClick = onDismiss, modifier = Modifier.size(36.dp)) {
+                            Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
+                        }
+                    }
+                }
+
+                HorizontalDivider(color = accent.copy(alpha = 0.2f))
+
+                // Content List
+                LazyColumn(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 20.dp, vertical = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Subtitle & Overview
+                    item {
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)),
+                            shape = RoundedCornerShape(16.dp),
+                            border = BorderStroke(1.dp, accent.copy(alpha = 0.3f)),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text(
+                                    text = metricItem.subtitle,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = accent,
+                                    lineHeight = 20.sp
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = metricItem.overview,
+                                    fontSize = 13.sp,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    lineHeight = 19.sp
+                                )
+                            }
+                        }
+                    }
+
+                    // Key Breakdown Points
+                    if (metricItem.keyPoints.isNotEmpty()) {
+                        item {
+                            Text(
+                                text = "CORE DELIVERABLES & DOMAIN METRICS",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = accent,
+                                letterSpacing = 1.2.sp
+                            )
+                        }
+
+                        items(metricItem.keyPoints) { (headline, detail) ->
+                            Card(
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                                shape = RoundedCornerShape(14.dp),
+                                border = BorderStroke(1.dp, accent.copy(alpha = 0.15f)),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(14.dp),
+                                    verticalAlignment = Alignment.Top
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(8.dp)
+                                            .clip(CircleShape)
+                                            .background(accent)
+                                            .padding(2.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = headline,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 13.sp,
+                                            color = Color.White
+                                        )
+                                        Spacer(modifier = Modifier.height(3.dp))
+                                        Text(
+                                            text = detail,
+                                            fontSize = 12.sp,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            lineHeight = 17.sp
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Outcomes
+                    if (metricItem.outcomes.isNotEmpty()) {
+                        item {
+                            Card(
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                                shape = RoundedCornerShape(16.dp),
+                                border = BorderStroke(1.dp, accent.copy(alpha = 0.25f)),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Column(modifier = Modifier.padding(16.dp)) {
+                                    Text(
+                                        text = "BUSINESS & ARCHITECTURAL IMPACT",
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = accent,
+                                        letterSpacing = 1.2.sp
+                                    )
+                                    Spacer(modifier = Modifier.height(10.dp))
+                                    metricItem.outcomes.forEach { outcome ->
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier.padding(vertical = 4.dp)
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Verified,
+                                                contentDescription = null,
+                                                tint = accent,
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Text(
+                                                text = outcome,
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.Medium,
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Close Button
+                    item {
+                        Button(
+                            onClick = onDismiss,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(50.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = accent),
+                            shape = RoundedCornerShape(14.dp)
+                        ) {
+                            Icon(Icons.Default.Close, contentDescription = null, tint = Color.Black)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Close details",
+                                color = Color.Black,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
 val articlesList = listOf(
     TechArticle(
@@ -144,7 +1356,8 @@ val servicesList = listOf(
             "Modern data lakehouse deployment (Delta Lake and Parquet)",
             "Database modernizations & zero-downtime DB migrations",
             "Analytical reporting optimization & cost control"
-        )
+        ),
+        accentColor = Color(0xFF34D399) // Mint / Emerald Green
     ),
     VaanService(
         id = "cloud_transform",
@@ -158,7 +1371,8 @@ val servicesList = listOf(
             "Infrastructure as Code (IaC) using Terraform and Ansible",
             "Kubernetes container orchestration (EKS, AKS, GKE)",
             "Compliance alignment & FinOps cloud cost optimisation"
-        )
+        ),
+        accentColor = Color(0xFF38BDF8) // Sky / Cyan Blue
     ),
     VaanService(
         id = "mobile_dev",
@@ -172,7 +1386,8 @@ val servicesList = listOf(
             "Secure local storage, biometric auth, and encryption",
             "Highly responsive Material 3 reactive animations",
             "Play Store publishing and telemetry monitoring pipelines"
-        )
+        ),
+        accentColor = Color(0xFF2DD4BF) // Teal / Turquoise
     ),
     VaanService(
         id = "web_dev",
@@ -186,7 +1401,8 @@ val servicesList = listOf(
             "Secure API integration with high-performance cache layers",
             "Role-based authentication & enterprise SSO integrations",
             "Automated testing, CI/CD pipelines, and cloud deployments"
-        )
+        ),
+        accentColor = Color(0xFFFB923C) // Amber / Vibrant Orange
     ),
     VaanService(
         id = "bespoke_consulting",
@@ -200,7 +1416,8 @@ val servicesList = listOf(
             "Lean Portfolio Management (LPM) alignment & funding workshops",
             "Agile Release Train (ART) facilitation & PI Planning preparation",
             "Architecture due diligence and technical audit reports"
-        )
+        ),
+        accentColor = Color(0xFFA78BFA) // Soft Violet / Purple
     )
 )
 
@@ -412,7 +1629,11 @@ fun MainAppScreen(viewModel: AppViewModel) {
                         appointments = appointments,
                         emailLogs = emailLogs,
                         autoEmailEnabled = autoEmailEnabled,
-                        onNavigateToTab = { currentTab = it }
+                        onNavigateToTab = { currentTab = it },
+                        onBookServiceCategory = { serviceTitle ->
+                            selectedServiceCategoryForBooking = serviceTitle
+                            currentTab = "bookings"
+                        }
                     )
                     "services" -> ServicesScreen(
                         bookmarkedServices = bookmarkedServices,
@@ -504,9 +1725,226 @@ fun HomeScreen(
     appointments: List<Appointment>,
     emailLogs: List<EmailLog>,
     autoEmailEnabled: Boolean,
-    onNavigateToTab: (String) -> Unit
+    onNavigateToTab: (String) -> Unit,
+    onBookServiceCategory: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
+    var selectedPillarForSubpage by remember { mutableStateOf<PillarItem?>(null) }
+    var selectedCapabilityForSubpage by remember { mutableStateOf<VaanCapabilityItem?>(null) }
+    var selectedMetricForSubpage by remember { mutableStateOf<MetricDetailItem?>(null) }
+
+    // Subpage Dialog Displays
+    selectedPillarForSubpage?.let { pillar ->
+        PillarDetailSubpageDialog(
+            pillar = pillar,
+            onDismiss = { selectedPillarForSubpage = null },
+            onBookConsultation = { category ->
+                onBookServiceCategory(category)
+            }
+        )
+    }
+
+    selectedCapabilityForSubpage?.let { capability ->
+        CapabilityDetailSubpageDialog(
+            capability = capability,
+            onDismiss = { selectedCapabilityForSubpage = null },
+            onBookConsultation = { category ->
+                onBookServiceCategory(category)
+            }
+        )
+    }
+
+    selectedMetricForSubpage?.let { metric ->
+        MetricDetailSubpageDialog(
+            metricItem = metric,
+            onDismiss = { selectedMetricForSubpage = null },
+            onBookConsultation = { category ->
+                onBookServiceCategory(category)
+            }
+        )
+    }
+
+    val valuePillars = listOf(
+        PillarItem(
+            num = "01",
+            title = "Strategic ownership",
+            desc = "Complex business requirements translated into scalable, secure, cost-effective architectures.",
+            accentColor = Color(0xFF38BDF8),
+            overview = "At VAAN, strategic ownership means bridging executive vision with hands-on engineering. We don't just supply static recommendation slides — we architect, validate, and govern production systems with direct accountability for performance, cost, and security.",
+            objectives = listOf(
+                PillarObjective("Target Operating Model", "Designing resilient, cloud-agnostic blueprints adapted to enterprise constraints and regulatory frameworks."),
+                PillarObjective("FinOps & Cost Governance", "Eliminating wasted cloud spend through intelligent resource scheduling, right-sizing, and reserved capacity."),
+                PillarObjective("Enterprise Risk Mitigation", "Embedding zero-trust security architecture, data sovereignty, and compliance controls from day zero.")
+            ),
+            roadmap = listOf(
+                PillarPhase("01", "Discovery & Audit", "Comprehensive evaluation of existing legacy bottlenecks, technical debt, and cloud spend vectors."),
+                PillarPhase("02", "Blueprint & Governance", "Defining target topology, automated guardrails, security baselines, and cross-team delivery standards."),
+                PillarPhase("03", "Hands-On Execution", "Embedded architecture leadership working alongside engineering teams to ship iterative releases."),
+                PillarPhase("04", "Continuous Optimization", "Automated FinOps monitoring, telemetry benchmarking, and ongoing operational review.")
+            ),
+            deliverables = listOf(
+                "Enterprise Multi-Cloud Target Architecture Blueprints",
+                "FinOps Cloud Cost Governance & Optimization Matrix",
+                "Zero-Trust Security & Regulatory Compliance Baselines",
+                "Technical Debt Remediation & Modernization Roadmap"
+            )
+        ),
+        PillarItem(
+            num = "02",
+            title = "Delivery confidence",
+            desc = "Full lifecycle delivery led against business and regulatory standards — not just advisory slides.",
+            accentColor = Color(0xFF34D399),
+            overview = "Large scale transformations fail when strategy disconnects from execution. VAAN leads full-lifecycle delivery against strict business and regulatory standards, using SAFe 6 practices to maintain velocity without sacrificing quality.",
+            objectives = listOf(
+                PillarObjective("Predictable Velocity", "Establishing clear program increment cadence, dependency mapping, and transparent risk management."),
+                PillarObjective("Regulatory & Compliance Readiness", "Ensuring strict adherence to APRA, RBNZ, SOC 2, and ISO 27001 standards throughout the lifecycle."),
+                PillarObjective("Technical Debt Remediation", "Systematically refactoring legacy bottlenecks while maintaining continuous feature delivery cadence.")
+            ),
+            roadmap = listOf(
+                PillarPhase("01", "Agile Alignment", "Implementing SAFe 6 PI planning, team backlogs, and cross-functional dependency tracking."),
+                PillarPhase("02", "Automated Quality Gates", "Integrating CI/CD testing, SAST/DAST security scanning, and policy-as-code into release pipelines."),
+                PillarPhase("03", "Milestone Rollouts", "Incremental canary and blue/green deployments with automated rollback capabilities."),
+                PillarPhase("04", "Team Elevation", "Upskilling internal engineering teams to ensure long-term operational self-sufficiency.")
+            ),
+            deliverables = listOf(
+                "SAFe 6 Program Increment Delivery & Governance Plan",
+                "Automated DevSecOps Pipeline & Security Quality Gates",
+                "Cross-Team Risk & Dependency Heatmaps",
+                "Operational Readiness & Production Cutover Playbooks"
+            )
+        ),
+        PillarItem(
+            num = "03",
+            title = "Technical credibility",
+            desc = "Hands-on cloud, data and distributed-systems expertise that validates designs and reduces delivery risk.",
+            accentColor = Color(0xFFA78BFA),
+            overview = "Our recommendations are backed by 16+ years of hands-on distributed systems and cloud data platform engineering. We write production Kotlin, Java, Terraform, SQL, and Python alongside your senior engineers to validate designs in code.",
+            objectives = listOf(
+                PillarObjective("Production-Tested Design", "Architecting high-throughput, fault-tolerant event-driven microservices for scale."),
+                PillarObjective("Modern Data Ecosystems", "Building clean ETL/ELT streaming data pipelines with Snowflake, Databricks, and Microsoft Fabric."),
+                PillarObjective("Infrastructure as Code", "Enforcing reproducible, immutable infrastructure modules across AWS, Azure, and GCP.")
+            ),
+            roadmap = listOf(
+                PillarPhase("01", "Proof of Concept", "Rapid technical prototyping to validate throughput, latency, and cloud unit costs."),
+                PillarPhase("02", "Cloud Native Core", "Deploying containerized microservices on Kubernetes with service mesh traffic control."),
+                PillarPhase("03", "Data Lakehouse Pipeline", "Implementing dbt transformations, Spark batching, and Kafka event streams."),
+                PillarPhase("04", "Full Observability", "Instrumenting OpenTelemetry, Prometheus, and Grafana dashboards for end-to-end tracing.")
+            ),
+            deliverables = listOf(
+                "Production-Grade Microservice & Event Broker Architectures",
+                "High-Performance Lakehouse Data Pipelines (dbt, Spark, Kafka)",
+                "Terraform & Bicep Infrastructure as Code Repositories",
+                "End-to-End OpenTelemetry APM & Tracing Dashboards"
+            )
+        )
+    )
+
+    val capabilitiesList = listOf(
+        VaanCapabilityItem(
+            icon = Icons.Default.CloudQueue,
+            title = "Multi-cloud architecture",
+            desc = "Production-grade, cost-optimised solutions designed across AWS, Azure and GCP — reducing vendor lock-in while maximising the value of each platform.",
+            tags = listOf("AWS", "Azure", "GCP", "FinOps"),
+            accentColor = Color(0xFF38BDF8),
+            overview = "Production-grade multi-cloud architectures built across AWS, Azure, and GCP. We help enterprise organizations leverage the best capabilities of each cloud provider while establishing automated governance, unified security, and rigorous FinOps spend controls.",
+            solutions = listOf(
+                CapabilitySolution("Cloud Migration & Landing Zones", "Automated, secure landing zone blueprints with automated multi-account guardrails."),
+                CapabilitySolution("FinOps & Cost Governance", "Real-time visibility, cost allocation tagging, and automated resource right-sizing."),
+                CapabilitySolution("Hybrid & Disaster Recovery", "Multi-region active-active topologies and zero-downtime failover strategies."),
+                CapabilitySolution("Infrastructure as Code (IaC)", "Declarative Terraform and Pulumi modules for deterministic infrastructure deployments.")
+            ),
+            techStackDetails = mapOf(
+                "AWS" to "EKS, Lambda, S3, RDS, Transit Gateway, CloudFront",
+                "Azure" to "AKS, CosmosDB, ExpressRoute, Synapse, App Service",
+                "GCP" to "GKE, BigQuery, Cloud Run, Pub/Sub, Anthos",
+                "Tooling" to "Terraform, Pulumi, HashiCorp Vault, Datadog, Kubecost"
+            ),
+            strategicOutcomes = listOf(
+                "35%+ Reduction in Idle Multi-Cloud Infrastructure Spend",
+                "Zero Vendor Lock-In for Core Business Logic & Microservices",
+                "99.99% Multi-Region High Availability SLA",
+                "100% Automated Infrastructure Deployment via GitOps"
+            )
+        ),
+        VaanCapabilityItem(
+            icon = Icons.Default.Storage,
+            title = "Data platform modernisation",
+            desc = "ETL/ELT pipelines and analytics platforms built on Snowflake, Databricks and Microsoft Fabric that turn raw, fragmented data into decisions teams can act on.",
+            tags = listOf("Snowflake", "Databricks", "Fabric", "DBT"),
+            accentColor = Color(0xFF34D399),
+            overview = "Transform raw, fragmented enterprise data into structured, real-time intelligence. VAAN modernizes legacy data warehouses into modern lakehouses powered by Snowflake, Databricks, and Microsoft Fabric.",
+            solutions = listOf(
+                CapabilitySolution("Lakehouse Architecture", "Unifying batch and streaming data using open formats (Delta Lake, Apache Iceberg)."),
+                CapabilitySolution("Real-Time Streaming Pipelines", "Event-driven data processing pipelines with Kafka, Spark Streaming, and dbt."),
+                CapabilitySolution("Data Mesh & Governance", "Decentralized data product ownership with automated cataloging and data lineage."),
+                CapabilitySolution("Analytics & AI Integration", "High-performance query engine tuning and feature store pipelines for AI models.")
+            ),
+            techStackDetails = mapOf(
+                "Platforms" to "Snowflake, Databricks, Microsoft Fabric, BigQuery",
+                "Transformation" to "dbt Core / Cloud, Apache Spark, Airflow, Dagster",
+                "Streaming" to "Apache Kafka, Confluent Cloud, Azure Event Hubs",
+                "Governance" to "Collibra, Unity Catalog, Alation, Apache Atlas"
+            ),
+            strategicOutcomes = listOf(
+                "10x Query Acceleration for Enterprise BI & Reporting Dashboards",
+                "Automated Data Governance & Lineage for Audit Auditing",
+                "Single Unified Data Lakehouse for Analytics & Predictive ML",
+                "Near-Zero Latency Real-Time Streaming Data Pipelines"
+            )
+        ),
+        VaanCapabilityItem(
+            icon = Icons.Default.DeveloperMode,
+            title = "Distributed systems & microservices",
+            desc = "Event-driven, fault-tolerant systems architected for enterprise-scale workloads, drawing on deep Java and microservices expertise.",
+            tags = listOf("Java", "Spring Boot", "Kubernetes", "EDA"),
+            accentColor = Color(0xFFFB923C),
+            overview = "Designing and engineering enterprise distributed systems built for extreme scalability and fault tolerance. Drawing on deep Java, Spring Boot, and Kubernetes expertise, we replace monolithic legacy bottlenecks with decoupled microservices.",
+            solutions = listOf(
+                CapabilitySolution("Event-Driven Architecture (EDA)", "Asynchronous messaging with event sourcing and CQRS patterns for high-concurrency workloads."),
+                CapabilitySolution("Container Orchestration & Mesh", "Enterprise Kubernetes (EKS/AKS/GKE) with Istio service mesh and GitOps deployments."),
+                CapabilitySolution("Resilience & Circuit Breaking", "Distributed tracing, rate limiting, circuit breakers, and graceful fallback mechanisms."),
+                CapabilitySolution("API Gateway & Security", "Centralized OAuth2/OIDC authentication, rate limiting, and GraphQL/REST endpoints.")
+            ),
+            techStackDetails = mapOf(
+                "Languages" to "Java 21+, Kotlin, Go, TypeScript",
+                "Frameworks" to "Spring Boot 3, Quarkus, Micronaut, Ktor",
+                "Orchestration" to "Kubernetes, Helm, ArgoCD, Flux, Istio",
+                "Messaging" to "Apache Kafka, RabbitMQ, AWS SQS/SNS, NATS"
+            ),
+            strategicOutcomes = listOf(
+                "Sub-10ms P99 Latency under High Concurrency Spikes",
+                "Zero-Downtime Continuous Deployments via ArgoCD GitOps",
+                "Fault-Tolerant System Resilience with Automated Healing",
+                "Decoupled Microservice Architecture with Independent Scale"
+            )
+        ),
+        VaanCapabilityItem(
+            icon = Icons.Default.Verified,
+            title = "Governance & delivery leadership",
+            desc = "Cross-functional teams led through SAFe 6 practice — managing technical debt and navigating architecture governance in regulated sectors.",
+            tags = listOf("SAFe 6", "Agile", "Risk & Compliance"),
+            accentColor = Color(0xFFA78BFA),
+            overview = "Navigating complex corporate governance, risk compliance, and multi-vendor delivery. VAAN provides hands-on technical leadership to guide cross-functional teams through SAFe 6 practices while managing technical debt and meeting regulatory audits.",
+            solutions = listOf(
+                CapabilitySolution("SAFe 6 Program Execution", "Agile Release Train (ART) setup, PI planning, and value stream mapping for large teams."),
+                CapabilitySolution("Regulatory & Audit Compliance", "Automated compliance evidence collection for banking (APRA/RBNZ), energy, and government."),
+                CapabilitySolution("Technical Debt Remediation", "Quantitative tech debt evaluation, priority refactoring backlogs, and risk scoring."),
+                CapabilitySolution("Vendor & Team Alignment", "Aligning multi-vendor engineering teams around unified architecture standards and SLAs.")
+            ),
+            techStackDetails = mapOf(
+                "Frameworks" to "SAFe 6, Scrum, Kanban, LeSS, Value Stream Management",
+                "Compliance" to "ISO 27001, SOC 2 Type II, APRA CPS 234, RBNZ Framework",
+                "Quality & Security" to "SonarQube, Snyk, HashiCorp Vault, GitHub Security"
+            ),
+            strategicOutcomes = listOf(
+                "100% Audit Readiness for Banking & Energy Industry Standards",
+                "40% Fast-Tracked Release Cadence through DevSecOps Automation",
+                "Reduced Cross-Team Bottlenecks and Delivery Friction",
+                "Transparent Engineering Metrics & Executive Visibility"
+            )
+        )
+    )
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -515,15 +1953,44 @@ fun HomeScreen(
     ) {
         // Hero Card
         item {
+            val heroAccent = Color(0xFF2DD4BF)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .drawBehind {
+                        // Soft outer border backlight glow
+                        drawRoundRect(
+                            color = heroAccent.copy(alpha = 0.22f),
+                            topLeft = androidx.compose.ui.geometry.Offset(-2.dp.toPx(), -2.dp.toPx()),
+                            size = androidx.compose.ui.geometry.Size(size.width + 4.dp.toPx(), size.height + 4.dp.toPx()),
+                            cornerRadius = androidx.compose.ui.geometry.CornerRadius(26.dp.toPx(), 26.dp.toPx())
+                        )
+                        // Ambient radial backlight glow behind card
+                        drawRoundRect(
+                            brush = Brush.radialGradient(
+                                colors = listOf(heroAccent.copy(alpha = 0.20f), Color.Transparent),
+                                center = androidx.compose.ui.geometry.Offset(size.width * 0.85f, size.height * 0.2f),
+                                radius = size.width * 0.8f
+                            ),
+                            cornerRadius = androidx.compose.ui.geometry.CornerRadius(24.dp.toPx(), 24.dp.toPx())
+                        )
+                    }
+                    .border(
+                        width = 1.25.dp,
+                        brush = Brush.linearGradient(
+                            colors = listOf(
+                                heroAccent.copy(alpha = 0.60f),
+                                heroAccent.copy(alpha = 0.20f)
+                            )
+                        ),
+                        shape = RoundedCornerShape(24.dp)
+                    )
                     .clip(RoundedCornerShape(24.dp))
                     .background(
                         Brush.linearGradient(
                             colors = listOf(
                                 Color(0xFF0F172A),
-                                Color(0xFF0D9488)
+                                Color(0xFF1E293B)
                             )
                         )
                     )
@@ -638,47 +2105,18 @@ fun HomeScreen(
                     HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
                     Spacer(modifier = Modifier.height(20.dp))
                     
-                    // Value pillars (01, 02, 03)
-                    listOf(
-                        Triple("01", "Strategic ownership", "Complex business requirements translated into scalable, secure, cost-effective architectures."),
-                        Triple("02", "Delivery confidence", "Full lifecycle delivery led against business and regulatory standards — not just advisory slides."),
-                        Triple("03", "Technical credibility", "Hands-on cloud, data and distributed-systems expertise that validates designs and reduces delivery risk.")
-                    ).forEach { (num, title, desc) ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 10.dp),
-                            verticalAlignment = Alignment.Top
-                        ) {
-                            Text(
-                                text = num,
-                                color = Color(0xFF14B8A6),
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp,
-                                modifier = Modifier.width(32.dp)
-                            )
-                            Column {
-                                Text(
-                                    text = title,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    fontSize = 14.sp,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = desc,
-                                    fontSize = 12.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    lineHeight = 17.sp
-                                )
-                            }
-                        }
+                    // Value pillars (01, 02, 03) with distinct category colors & subpage handlers
+                    valuePillars.forEach { pillar ->
+                        InteractiveValuePillarRow(
+                            pillar = pillar,
+                            onClick = { selectedPillarForSubpage = pillar }
+                        )
                     }
                 }
             }
         }
 
-        // Capabilities Block (Screenshot 2 alignment)
+        // Capabilities Block
         item {
             Column(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
                 Text(
@@ -706,86 +2144,13 @@ fun HomeScreen(
             }
         }
 
-        // The 4 key areas of capability as beautiful cards
-        listOf(
-            VaanCapabilityItem(
-                Icons.Default.CloudQueue,
-                "Multi-cloud architecture",
-                "Production-grade, cost-optimised solutions designed across AWS, Azure and GCP — reducing vendor lock-in while maximising the value of each platform.",
-                listOf("AWS", "Azure", "GCP", "FinOps")
-            ),
-            VaanCapabilityItem(
-                Icons.Default.Storage,
-                "Data platform modernisation",
-                "ETL/ELT pipelines and analytics platforms built on Snowflake, Databricks and Microsoft Fabric that turn raw, fragmented data into decisions teams can act on.",
-                listOf("Snowflake", "Databricks", "Fabric", "DBT")
-            ),
-            VaanCapabilityItem(
-                Icons.Default.DeveloperMode,
-                "Distributed systems & microservices",
-                "Event-driven, fault-tolerant systems architected for enterprise-scale workloads, drawing on deep Java and microservices expertise.",
-                listOf("Java", "Spring Boot", "Kubernetes", "EDA")
-            ),
-            VaanCapabilityItem(
-                Icons.Default.Verified,
-                "Governance & delivery leadership",
-                "Cross-functional teams led through SAFe 6 practice — managing technical debt and navigating architecture governance in regulated sectors.",
-                listOf("SAFe 6", "Agile", "Risk & Compliance")
-            )
-        ).forEach { quad ->
+        // The 4 key areas of capability with interactive mouseover backlight glow & subpage handlers
+        capabilitiesList.forEach { quad ->
             item {
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    shape = RoundedCornerShape(20.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(modifier = Modifier.padding(20.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(
-                                modifier = Modifier
-                                    .size(40.dp)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(Color(0xFF0D9488)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(quad.icon, quad.title, tint = Color.White, modifier = Modifier.size(20.dp))
-                            }
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Text(
-                                text = quad.title,
-                                fontWeight = FontWeight.ExtraBold,
-                                fontSize = 16.sp,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Text(
-                            text = quad.desc,
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            lineHeight = 17.sp
-                        )
-                        Spacer(modifier = Modifier.height(14.dp))
-                        
-                        // Tag row
-                        Row(
-                            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            quad.tags.forEach { tag ->
-                                Box(
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(6.dp))
-                                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f))
-                                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                                ) {
-                                    Text(tag, color = Color(0xFF0D9488), fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                                }
-                            }
-                        }
-                    }
-                }
+                InteractiveCapabilityCard(
+                    quad = quad,
+                    onClick = { selectedCapabilityForSubpage = quad }
+                )
             }
         }
 
@@ -795,6 +2160,83 @@ fun HomeScreen(
         }
 
         // Operational Metrics Grid (from website screenshot)
+        val metricsList = listOf(
+            MetricDetailItem(
+                metric = "16+",
+                label = "Years delivering cloud platforms",
+                color = Color(0xFF38BDF8),
+                title = "16+ Years Enterprise Cloud Delivery",
+                subtitle = "Proven track record of architecting, deploying, and governing mission-critical systems across enterprise environments.",
+                overview = "Since 2008, VAAN has led multi-cloud migrations, high-throughput distributed systems engineering, and modern data stack implementations for top-tier enterprise clients across Australia and New Zealand.",
+                keyPoints = listOf(
+                    "2008–2014" to "High-concurrency Java & J2EE distributed systems for tier-1 financial institutions.",
+                    "2014–2018" to "Enterprise AWS & Azure Cloud Migration Lead, modernizing legacy monolithic infrastructure.",
+                    "2018–2022" to "Multi-cloud Landing Zones, zero-trust security baselines, and Kubernetes microservices.",
+                    "2022–Present" to "Snowflake, Databricks, and Microsoft Fabric Lakehouse data stack implementations."
+                ),
+                outcomes = listOf(
+                    "100+ Enterprise Cloud Systems Architected & Deployed",
+                    "Zero Outages or Data Loss during Legacy System Cutover",
+                    "100% On-Time Milestone Delivery across SAFe 6 Program Increments"
+                )
+            ),
+            MetricDetailItem(
+                metric = "3",
+                label = "Sectors: banking, energy, auto",
+                color = Color(0xFF34D399),
+                title = "Core Industry Sectors",
+                subtitle = "Specialized domain engineering operating within highly regulated, compliance-heavy enterprise sectors.",
+                overview = "Our team brings hands-on domain experience navigating complex corporate environments, strict regulatory oversight, and multi-vendor delivery pipelines.",
+                keyPoints = listOf(
+                    "Banking & Financial Services" to "APRA CPS 234 / RBNZ compliance, core banking API integrations, real-time fraud detection pipelines.",
+                    "Energy & Utilities" to "High-frequency smart meter ingestion, IoT grid telemetry, real-time energy trading data streaming.",
+                    "Automotive & Supply Chain" to "Connected vehicle telematics, inventory optimization, multi-region ERP data synchronization."
+                ),
+                outcomes = listOf(
+                    "100% Regulatory Audit Readiness across Banking & Energy Standards",
+                    "Full APRA CPS 234 & RBNZ Governance Framework Alignment",
+                    "Resilient High-Throughput Ingestion for IoT & Telemetry"
+                )
+            ),
+            MetricDetailItem(
+                metric = "30%",
+                label = "Typical processing reduction",
+                color = Color(0xFFFB923C),
+                title = "Processing & Cost Optimization",
+                subtitle = "Quantified architectural optimization that significantly slashes compute overhead and cloud operational spend.",
+                overview = "We identify structural bottlenecks in cloud resources, query plans, and event brokers — eliminating waste and engineering high-efficiency pipelines.",
+                keyPoints = listOf(
+                    "FinOps & Resource Right-Sizing" to "Automated cluster scaling, spot instance orchestration, and eliminating idle cloud compute capacity.",
+                    "Query & Lakehouse Tuning" to "Optimizing dbt SQL transformations, Snowflake warehouse auto-suspend rules, and Delta Lake partitioning.",
+                    "Event-Driven Decoupling" to "Replacing resource-heavy synchronous polling with high-efficiency async Kafka & RabbitMQ event streams."
+                ),
+                outcomes = listOf(
+                    "30%–45% Average Reduction in Monthly Cloud Infrastructure Spend",
+                    "10x Processing Speedup for Nightly Enterprise Batch ETL Jobs",
+                    "60% Reduced P99 API Response Latency for Microservice Gateways"
+                )
+            ),
+            MetricDetailItem(
+                metric = "28",
+                label = "Professional tech certs held",
+                color = Color(0xFFA78BFA),
+                title = "Certified Engineering Credentials",
+                subtitle = "Industry-recognized professional certifications across major cloud providers, data platforms, and agile frameworks.",
+                overview = "Continuous technical mastery ensures our architectural designs adhere strictly to vendor best practices, security standards, and modern patterns.",
+                keyPoints = listOf(
+                    "AWS Certifications" to "Solutions Architect Professional, DevOps Engineer Professional, Data Analytics Specialty.",
+                    "Azure & GCP Certifications" to "Azure Solutions Architect Expert, GCP Professional Cloud Architect.",
+                    "Data & AI Certifications" to "Snowflake Certified SnowPro Core, Databricks Certified Data Engineer Professional.",
+                    "Agile & Governance" to "SAFe 6 Practice Consultant (SPC), Certified ScrumMaster (CSM)."
+                ),
+                outcomes = listOf(
+                    "Verified Expertise across Multi-Cloud Architectures",
+                    "Strict Adherence to Cloud Provider Well-Architected Frameworks",
+                    "Rapid Technical Onboarding and Architectural Credibility"
+                )
+            )
+        )
+
         item {
             Text(
                 text = "Track Record & Value",
@@ -811,15 +2253,17 @@ fun HomeScreen(
             ) {
                 MetricItemCard(
                     modifier = Modifier.weight(1f),
-                    metric = "16+",
-                    label = "Years delivering cloud platforms",
-                    color = MaterialTheme.colorScheme.primary
+                    metric = metricsList[0].metric,
+                    label = metricsList[0].label,
+                    color = metricsList[0].color,
+                    onClick = { selectedMetricForSubpage = metricsList[0] }
                 )
                 MetricItemCard(
                     modifier = Modifier.weight(1f),
-                    metric = "3",
-                    label = "Sectors: banking, energy, auto",
-                    color = MaterialTheme.colorScheme.secondary
+                    metric = metricsList[1].metric,
+                    label = metricsList[1].label,
+                    color = metricsList[1].color,
+                    onClick = { selectedMetricForSubpage = metricsList[1] }
                 )
             }
         }
@@ -831,15 +2275,17 @@ fun HomeScreen(
             ) {
                 MetricItemCard(
                     modifier = Modifier.weight(1f),
-                    metric = "30%",
-                    label = "Typical processing reduction",
-                    color = MaterialTheme.colorScheme.tertiary
+                    metric = metricsList[2].metric,
+                    label = metricsList[2].label,
+                    color = metricsList[2].color,
+                    onClick = { selectedMetricForSubpage = metricsList[2] }
                 )
                 MetricItemCard(
                     modifier = Modifier.weight(1f),
-                    metric = "28",
-                    label = "Professional tech certs held",
-                    color = Color(0xFF10B981)
+                    metric = metricsList[3].metric,
+                    label = metricsList[3].label,
+                    color = metricsList[3].color,
+                    onClick = { selectedMetricForSubpage = metricsList[3] }
                 )
             }
         }
@@ -858,7 +2304,7 @@ fun HomeScreen(
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "LIMITED • NEW ZEALAND",
-                        color = Color(0xFF94A3B8),
+                        color = Color(0xFF2DD4BF),
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 1.sp
@@ -1029,12 +2475,65 @@ fun HomeScreen(
 }
 
 @Composable
-fun MetricItemCard(modifier: Modifier = Modifier, metric: String, label: String, color: Color) {
+fun MetricItemCard(
+    modifier: Modifier = Modifier,
+    metric: String,
+    label: String,
+    color: Color,
+    onClick: () -> Unit = {}
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isHovered by interactionSource.collectIsHoveredAsState()
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val isActive = isHovered || isPressed
+
+    val animatedBorderAlpha by animateFloatAsState(
+        targetValue = if (isActive) 0.90f else 0.45f,
+        animationSpec = tween(durationMillis = 250),
+        label = "metricBorderAlpha"
+    )
+
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(20.dp),
         modifier = modifier
+            .drawBehind {
+                // Soft outer border backlight glow with matching metric color
+                drawRoundRect(
+                    color = color.copy(alpha = if (isActive) 0.32f else 0.14f),
+                    topLeft = androidx.compose.ui.geometry.Offset(-2.dp.toPx(), -2.dp.toPx()),
+                    size = androidx.compose.ui.geometry.Size(size.width + 4.dp.toPx(), size.height + 4.dp.toPx()),
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(22.dp.toPx(), 22.dp.toPx())
+                )
+                // Radial backlight ambient glow behind card
+                drawRoundRect(
+                    brush = Brush.radialGradient(
+                        colors = listOf(
+                            color.copy(alpha = if (isActive) 0.38f else 0.16f),
+                            Color.Transparent
+                        ),
+                        center = androidx.compose.ui.geometry.Offset(size.width * 0.5f, size.height * 0.3f),
+                        radius = size.width * 0.75f
+                    ),
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(20.dp.toPx(), 20.dp.toPx())
+                )
+            }
+            .border(
+                width = if (isActive) 2.dp else 1.25.dp,
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        color.copy(alpha = animatedBorderAlpha),
+                        color.copy(alpha = animatedBorderAlpha * 0.35f)
+                    )
+                ),
+                shape = RoundedCornerShape(20.dp)
+            )
+            .hoverable(interactionSource = interactionSource)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            )
     ) {
         Column(
             modifier = Modifier
@@ -1044,8 +2543,8 @@ fun MetricItemCard(modifier: Modifier = Modifier, metric: String, label: String,
         ) {
             Text(
                 text = metric,
-                fontSize = 24.sp,
-                fontWeight = FontWeight.ExtraBold,
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Black,
                 color = color
             )
             Spacer(modifier = Modifier.height(4.dp))
@@ -1057,6 +2556,22 @@ fun MetricItemCard(modifier: Modifier = Modifier, metric: String, label: String,
                 lineHeight = 15.sp,
                 fontWeight = FontWeight.Medium
             )
+            Spacer(modifier = Modifier.height(8.dp))
+            Box(
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .background(color.copy(alpha = if (isActive) 0.25f else 0.12f))
+                    .border(1.dp, color.copy(alpha = 0.35f), CircleShape)
+                    .padding(5.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                    contentDescription = "View detail",
+                    tint = color,
+                    modifier = Modifier.size(12.dp)
+                )
+            }
         }
     }
 }
@@ -1089,11 +2604,38 @@ fun InteractiveDiagramCard() {
         label = "DashProgress"
     )
     
+    val hubAccent = Color(0xFF38BDF8) // Sky cyan glow
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         shape = RoundedCornerShape(24.dp),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .drawBehind {
+                drawRoundRect(
+                    color = hubAccent.copy(alpha = 0.22f),
+                    topLeft = androidx.compose.ui.geometry.Offset(-2.dp.toPx(), -2.dp.toPx()),
+                    size = androidx.compose.ui.geometry.Size(size.width + 4.dp.toPx(), size.height + 4.dp.toPx()),
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(26.dp.toPx(), 26.dp.toPx())
+                )
+                drawRoundRect(
+                    brush = Brush.radialGradient(
+                        colors = listOf(hubAccent.copy(alpha = 0.25f), Color.Transparent),
+                        center = androidx.compose.ui.geometry.Offset(size.width * 0.5f, size.height * 0.3f),
+                        radius = size.width * 0.8f
+                    ),
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(24.dp.toPx(), 24.dp.toPx())
+                )
+            }
+            .border(
+                width = 1.25.dp,
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        hubAccent.copy(alpha = 0.65f),
+                        hubAccent.copy(alpha = 0.20f)
+                    )
+                ),
+                shape = RoundedCornerShape(24.dp)
+            )
     ) {
         Column(
             modifier = Modifier.padding(20.dp),
@@ -1252,27 +2794,61 @@ fun InteractiveDiagramCard() {
                 }
             }
             
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(14.dp))
+            val nodeAccent = when (selectedNode) {
+                "GCP", "Databricks", "AWS" -> Color(0xFF14B8A6)
+                "Snowflake", "Fabric", "Azure" -> Color(0xFFF59E0B)
+                else -> Color(0xFF38BDF8)
+            }
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.08f))
-                    .padding(12.dp)
+                    .drawBehind {
+                        // Soft outer border backlight glow
+                        drawRoundRect(
+                            color = nodeAccent.copy(alpha = 0.32f),
+                            topLeft = androidx.compose.ui.geometry.Offset(-2.dp.toPx(), -2.dp.toPx()),
+                            size = androidx.compose.ui.geometry.Size(size.width + 4.dp.toPx(), size.height + 4.dp.toPx()),
+                            cornerRadius = androidx.compose.ui.geometry.CornerRadius(18.dp.toPx(), 18.dp.toPx())
+                        )
+                        // Ambient radial backlight glow inside box
+                        drawRoundRect(
+                            brush = Brush.radialGradient(
+                                colors = listOf(nodeAccent.copy(alpha = 0.35f), Color.Transparent),
+                                center = androidx.compose.ui.geometry.Offset(size.width * 0.15f, size.height * 0.5f),
+                                radius = size.width * 0.85f
+                            ),
+                            cornerRadius = androidx.compose.ui.geometry.CornerRadius(16.dp.toPx(), 16.dp.toPx())
+                        )
+                    }
+                    .border(
+                        width = 1.5.dp,
+                        brush = Brush.linearGradient(
+                            colors = listOf(
+                                nodeAccent.copy(alpha = 0.90f),
+                                nodeAccent.copy(alpha = 0.30f)
+                            )
+                        ),
+                        shape = RoundedCornerShape(16.dp)
+                    )
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color(0xFF0F172A))
+                    .padding(16.dp)
             ) {
                 Column {
                     Text(
                         text = selectedNode,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp,
-                        color = MaterialTheme.colorScheme.secondary
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 15.sp,
+                        color = nodeAccent
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = nodeDescriptions[selectedNode] ?: "",
                         fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        lineHeight = 16.sp
+                        color = Color.White.copy(alpha = 0.92f),
+                        lineHeight = 17.sp
                     )
                 }
             }
@@ -1280,8 +2856,147 @@ fun InteractiveDiagramCard() {
     }
 }
 
+@Composable
+fun InteractiveServiceCard(
+    service: VaanService,
+    onClick: () -> Unit
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isHovered by interactionSource.collectIsHoveredAsState()
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val isActive = isHovered || isPressed
+
+    val accent = service.accentColor
+
+    val animatedBorderAlpha by animateFloatAsState(
+        targetValue = if (isActive) 0.95f else 0.50f,
+        animationSpec = tween(durationMillis = 250),
+        label = "serviceBorderAlpha"
+    )
+
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        shape = RoundedCornerShape(20.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .drawBehind {
+                // Soft outer border backlight glow with matching accent color
+                drawRoundRect(
+                    color = accent.copy(alpha = if (isActive) 0.38f else 0.18f),
+                    topLeft = androidx.compose.ui.geometry.Offset(-2.dp.toPx(), -2.dp.toPx()),
+                    size = androidx.compose.ui.geometry.Size(size.width + 4.dp.toPx(), size.height + 4.dp.toPx()),
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(22.dp.toPx(), 22.dp.toPx())
+                )
+                // Radial backlight ambient glow behind card
+                drawRoundRect(
+                    brush = Brush.radialGradient(
+                        colors = listOf(
+                            accent.copy(alpha = if (isActive) 0.42f else 0.20f),
+                            Color.Transparent
+                        ),
+                        center = androidx.compose.ui.geometry.Offset(size.width * 0.85f, size.height * 0.3f),
+                        radius = size.width * 0.8f
+                    ),
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(20.dp.toPx(), 20.dp.toPx())
+                )
+            }
+            .border(
+                width = if (isActive) 2.dp else 1.25.dp,
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        accent.copy(alpha = animatedBorderAlpha),
+                        accent.copy(alpha = animatedBorderAlpha * 0.35f)
+                    )
+                ),
+                shape = RoundedCornerShape(20.dp)
+            )
+            .hoverable(interactionSource = interactionSource)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            )
+            .testTag("service_card_${service.id}")
+    ) {
+        Column(modifier = Modifier.padding(18.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(42.dp)
+                        .clip(CircleShape)
+                        .background(accent.copy(alpha = 0.15f))
+                        .border(1.dp, accent.copy(alpha = 0.6f), CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(service.icon, service.title, tint = accent, modifier = Modifier.size(22.dp))
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = service.title,
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 16.sp,
+                        color = accent
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = service.subtitle,
+                        fontSize = 11.sp,
+                        color = accent.copy(alpha = 0.85f),
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .background(accent.copy(alpha = if (isActive) 0.25f else 0.12f))
+                        .border(1.dp, accent.copy(alpha = 0.35f), CircleShape)
+                        .padding(6.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = "View detail",
+                        tint = accent,
+                        modifier = Modifier.size(13.dp)
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(10.dp))
+            Text(
+                text = service.description,
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                lineHeight = 17.sp,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(
+                modifier = Modifier.horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                service.platforms.forEach { tag ->
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(accent.copy(alpha = 0.12f))
+                            .border(1.dp, accent.copy(alpha = 0.35f), RoundedCornerShape(8.dp))
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    ) {
+                        Text(tag, fontSize = 9.sp, color = accent, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        }
+    }
+}
+
 // =========================================================================
-// 4. SERVICES SCREEN COMPOSABLE (With Global Search, Persistent Bookmarking, and Detail Overlays)
+// 4. SERVICES SCREEN COMPOSABLE (With Custom Color Headings, Glow Backlight Cards, and Detail Overlays)
 // =========================================================================
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -1290,15 +3005,7 @@ fun ServicesScreen(
     onToggleBookmark: (String) -> Unit,
     onBookService: (String) -> Unit
 ) {
-    var searchQuery by remember { mutableStateOf("") }
-    var isSearchFocused by remember { mutableStateOf(false) }
     var selectedServiceForDetails by remember { mutableStateOf<VaanService?>(null) }
-
-    val filteredServices = servicesList.filter {
-        it.title.contains(searchQuery, ignoreCase = true) ||
-        it.description.contains(searchQuery, ignoreCase = true) ||
-        it.platforms.any { platform -> platform.contains(searchQuery, ignoreCase = true) }
-    }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Text(
@@ -1311,174 +3018,274 @@ fun ServicesScreen(
             text = "Explore services designed to modernize infrastructure and unlock pipeline speed.",
             fontSize = 11.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(bottom = 12.dp)
+            modifier = Modifier.padding(bottom = 14.dp)
         )
 
-        // Search Bar
-        OutlinedTextField(
-            value = searchQuery,
-            onValueChange = { searchQuery = it },
-            placeholder = {
-                if (!isSearchFocused) {
-                    Text("Search services or platform tags (AWS, Snowflake)...")
-                }
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .onFocusChanged { isSearchFocused = it.isFocused }
-                .testTag("services_search_input"),
-            singleLine = true,
-            leadingIcon = { Icon(Icons.Default.Search, null) },
-            trailingIcon = {
-                if (searchQuery.isNotEmpty()) {
-                    IconButton(onClick = { searchQuery = "" }) {
-                        Icon(Icons.Default.Close, null)
-                    }
-                }
+        LazyColumn(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            items(servicesList) { service ->
+                InteractiveServiceCard(
+                    service = service,
+                    onClick = { selectedServiceForDetails = service }
+                )
             }
-        )
-        Spacer(modifier = Modifier.height(12.dp))
+        }
+    }
 
-        if (filteredServices.isEmpty()) {
-            Box(
-                modifier = Modifier.weight(1f).fillMaxWidth(),
-                contentAlignment = Alignment.Center
+    // Service Detail Overlay Subpage
+    selectedServiceForDetails?.let { service ->
+        val accent = service.accentColor
+        Dialog(
+            onDismissRequest = { selectedServiceForDetails = null },
+            properties = DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF0B132B)),
+                shape = RoundedCornerShape(24.dp),
+                border = BorderStroke(1.5.dp, accent.copy(alpha = 0.5f)),
+                modifier = Modifier
+                    .fillMaxWidth(0.94f)
+                    .fillMaxHeight(0.88f)
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(Icons.Default.Search, "No matching services", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(48.dp))
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text("No services found matching \"$searchQuery\"", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp)
-                }
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(filteredServices) { service ->
-                    Card(
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { selectedServiceForDetails = service }
-                            .testTag("service_card_${service.id}")
+                Column(modifier = Modifier.fillMaxSize().padding(18.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically
+                        Row(
+                            modifier = Modifier.weight(1f),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(44.dp)
+                                    .clip(CircleShape)
+                                    .background(accent.copy(alpha = 0.2f))
+                                    .border(1.dp, accent, CircleShape),
+                                contentAlignment = Alignment.Center
                             ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(36.dp)
-                                        .clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(service.icon, service.title, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
-                                }
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(service.title, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = MaterialTheme.colorScheme.onSurface)
-                                    Text(service.subtitle, fontSize = 11.sp, color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.Medium)
-                                }
+                                Icon(service.icon, service.title, tint = accent, modifier = Modifier.size(24.dp))
                             }
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = service.description,
-                                fontSize = 12.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                lineHeight = 16.sp,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                            Spacer(modifier = Modifier.height(10.dp))
-                            Row(
-                                modifier = Modifier.horizontalScroll(rememberScrollState()),
-                                horizontalArrangement = Arrangement.spacedBy(6.dp)
-                            ) {
-                                service.platforms.forEach { tag ->
-                                    Box(
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(8.dp))
-                                            .background(MaterialTheme.colorScheme.surfaceVariant)
-                                            .padding(horizontal = 8.dp, vertical = 4.dp)
-                                    ) {
-                                        Text(tag, fontSize = 9.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Bold)
-                                    }
-                                }
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = service.title,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    fontSize = 17.sp,
+                                    lineHeight = 21.sp,
+                                    color = accent
+                                )
+                                Text(
+                                    text = service.subtitle,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 11.sp,
+                                    color = Color.White.copy(alpha = 0.8f)
+                                )
                             }
                         }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        IconButton(
+                            onClick = { selectedServiceForDetails = null },
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                            .verticalScroll(rememberScrollState())
+                    ) {
+                        Text(
+                            text = service.description,
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            lineHeight = 18.sp
+                        )
+                        Spacer(modifier = Modifier.height(14.dp))
+                        Text(
+                            text = "TECHNICAL SCOPE & DELIVERABLES",
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 10.sp,
+                            color = accent,
+                            letterSpacing = 1.sp
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        service.details.forEach { bullet ->
+                            Row(modifier = Modifier.padding(vertical = 3.dp), verticalAlignment = Alignment.Top) {
+                                Icon(
+                                    imageVector = Icons.Default.Verified,
+                                    contentDescription = null,
+                                    tint = accent,
+                                    modifier = Modifier.size(14.dp).padding(top = 2.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(bullet, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface, lineHeight = 16.sp)
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Button(
+                        onClick = { selectedServiceForDetails = null },
+                        colors = ButtonDefaults.buttonColors(containerColor = accent),
+                        shape = RoundedCornerShape(14.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp)
+                    ) {
+                        Icon(Icons.Default.Close, contentDescription = null, tint = Color.Black)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Close details", fontSize = 14.sp, color = Color.Black, fontWeight = FontWeight.Bold)
                     }
                 }
             }
         }
     }
+}
 
-    // Service Detail Overlay
-    selectedServiceForDetails?.let { service ->
-        Dialog(onDismissRequest = { selectedServiceForDetails = null }) {
-            Card(
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                shape = RoundedCornerShape(24.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp)
+@Composable
+fun InteractiveArticleCard(
+    article: TechArticle,
+    isSaved: Boolean,
+    onToggleBookmark: () -> Unit,
+    onClick: () -> Unit
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isHovered by interactionSource.collectIsHoveredAsState()
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val isActive = isHovered || isPressed
+
+    val accent = when (article.category) {
+        "Data Platform" -> Color(0xFF34D399) // Mint / Emerald Green
+        "Cloud & Digital" -> Color(0xFF38BDF8) // Sky Blue
+        "Mobile Dev" -> Color(0xFF2DD4BF) // Teal
+        "Web Dev" -> Color(0xFFFB923C) // Amber / Orange
+        "Bespoke Consulting" -> Color(0xFFA78BFA) // Violet / Purple
+        else -> Color(0xFF38BDF8)
+    }
+
+    val animatedBorderAlpha by animateFloatAsState(
+        targetValue = if (isActive) 0.95f else 0.50f,
+        animationSpec = tween(durationMillis = 250),
+        label = "articleBorderAlpha"
+    )
+
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        shape = RoundedCornerShape(20.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .drawBehind {
+                // Outer glow backlight border matching category accent color
+                drawRoundRect(
+                    color = accent.copy(alpha = if (isActive) 0.38f else 0.18f),
+                    topLeft = androidx.compose.ui.geometry.Offset(-2.dp.toPx(), -2.dp.toPx()),
+                    size = androidx.compose.ui.geometry.Size(size.width + 4.dp.toPx(), size.height + 4.dp.toPx()),
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(22.dp.toPx(), 22.dp.toPx())
+                )
+                // Radial backlight ambient glow behind card
+                drawRoundRect(
+                    brush = Brush.radialGradient(
+                        colors = listOf(
+                            accent.copy(alpha = if (isActive) 0.42f else 0.20f),
+                            Color.Transparent
+                        ),
+                        center = androidx.compose.ui.geometry.Offset(size.width * 0.85f, size.height * 0.3f),
+                        radius = size.width * 0.8f
+                    ),
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(20.dp.toPx(), 20.dp.toPx())
+                )
+            }
+            .border(
+                width = if (isActive) 2.dp else 1.25.dp,
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        accent.copy(alpha = animatedBorderAlpha),
+                        accent.copy(alpha = animatedBorderAlpha * 0.35f)
+                    )
+                ),
+                shape = RoundedCornerShape(20.dp)
+            )
+            .hoverable(interactionSource = interactionSource)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            )
+            .testTag("article_card_${article.id}")
+    ) {
+        Column(modifier = Modifier.padding(18.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(modifier = Modifier.padding(24.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(accent.copy(alpha = 0.15f))
+                        .border(1.dp, accent.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                ) {
+                    Text(
+                        text = article.category,
+                        fontSize = 10.sp,
+                        color = accent,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = article.readTime,
+                        fontSize = 11.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    IconButton(
+                        onClick = onToggleBookmark,
+                        modifier = Modifier.size(28.dp).testTag("bookmark_article_${article.id}")
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(service.icon, service.title, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
-                        }
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(service.title, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(service.subtitle, fontWeight = FontWeight.Bold, fontSize = 13.sp, color = MaterialTheme.colorScheme.secondary)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(service.description, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface, lineHeight = 18.sp)
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text("Technical Scope Areas:", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Spacer(modifier = Modifier.height(6.dp))
-                    service.details.forEach { bullet ->
-                        Row(modifier = Modifier.padding(vertical = 2.dp), verticalAlignment = Alignment.Top) {
-                            Text("• ", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                            Text(bullet, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, lineHeight = 16.sp)
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(20.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                        OutlinedButton(
-                            onClick = { selectedServiceForDetails = null },
-                            shape = RoundedCornerShape(12.dp),
-                            modifier = Modifier.weight(0.8f)
-                        ) {
-                            Text("Dismiss", fontSize = 12.sp, maxLines = 1)
-                        }
-                        Button(
-                            onClick = {
-                                selectedServiceForDetails = null
-                                onBookService(service.title)
-                            },
-                            shape = RoundedCornerShape(12.dp),
-                            modifier = Modifier.weight(1.2f)
-                        ) {
-                            Text("Book Session", fontSize = 12.sp, maxLines = 1)
-                        }
+                        Icon(
+                            imageVector = if (isSaved) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
+                            contentDescription = "Bookmark",
+                            tint = if (isSaved) accent else MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(18.dp)
+                        )
                     }
                 }
             }
+            Spacer(modifier = Modifier.height(10.dp))
+            Text(
+                text = article.title,
+                fontWeight = FontWeight.ExtraBold,
+                fontSize = 15.sp,
+                color = MaterialTheme.colorScheme.onSurface,
+                lineHeight = 20.sp
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = article.summary,
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                lineHeight = 16.sp,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            Text(
+                text = article.date,
+                fontSize = 10.sp,
+                color = accent.copy(alpha = 0.9f),
+                fontWeight = FontWeight.Bold
+            )
         }
     }
 }
@@ -1631,57 +3438,16 @@ fun InsightsScreen(
         } else {
             LazyColumn(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 items(filteredArticles) { article ->
                     val isSaved = bookmarkedArticles.contains(article.id)
-                    Card(
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { selectedArticleForReading = article }
-                            .testTag("article_card_${article.id}")
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(6.dp))
-                                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
-                                        .padding(horizontal = 6.dp, vertical = 3.dp)
-                                ) {
-                                    Text(article.category, fontSize = 9.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
-                                }
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(article.readTime, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                    Spacer(modifier = Modifier.width(6.dp))
-                                    IconButton(
-                                        onClick = { onToggleBookmark(article.id) },
-                                        modifier = Modifier.size(24.dp).testTag("bookmark_article_${article.id}")
-                                    ) {
-                                        Icon(
-                                            imageVector = if (isSaved) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
-                                            contentDescription = "Bookmark",
-                                            tint = if (isSaved) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                                            modifier = Modifier.size(16.dp)
-                                        )
-                                    }
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(article.title, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(article.summary, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, lineHeight = 15.sp)
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(article.date, fontSize = 9.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                    }
+                    InteractiveArticleCard(
+                        article = article,
+                        isSaved = isSaved,
+                        onToggleBookmark = { onToggleBookmark(article.id) },
+                        onClick = { selectedArticleForReading = article }
+                    )
                 }
             }
         }
@@ -1690,15 +3456,53 @@ fun InsightsScreen(
     // Article Reading Dialog Overlay
     selectedArticleForReading?.let { article ->
         val isSaved = bookmarkedArticles.contains(article.id)
-        Dialog(onDismissRequest = { selectedArticleForReading = null }) {
+        val categoryAccent = when (article.category) {
+            "Data Platform" -> Color(0xFF34D399) // Mint / Emerald Green
+            "Cloud & Digital" -> Color(0xFF38BDF8) // Sky Blue
+            "Mobile Dev" -> Color(0xFF2DD4BF) // Teal
+            "Web Dev" -> Color(0xFFFB923C) // Amber / Orange
+            "Bespoke Consulting" -> Color(0xFFA78BFA) // Violet / Purple
+            else -> Color(0xFF38BDF8)
+        }
+
+        Dialog(
+            onDismissRequest = { selectedArticleForReading = null },
+            properties = DialogProperties(usePlatformDefaultWidth = false)
+        ) {
             Card(
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 shape = RoundedCornerShape(24.dp),
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp)
+                    .fillMaxWidth(0.94f)
+                    .fillMaxHeight(0.88f)
+                    .drawBehind {
+                        drawRoundRect(
+                            color = categoryAccent.copy(alpha = 0.25f),
+                            topLeft = androidx.compose.ui.geometry.Offset(-2.dp.toPx(), -2.dp.toPx()),
+                            size = androidx.compose.ui.geometry.Size(size.width + 4.dp.toPx(), size.height + 4.dp.toPx()),
+                            cornerRadius = androidx.compose.ui.geometry.CornerRadius(26.dp.toPx(), 26.dp.toPx())
+                        )
+                        drawRoundRect(
+                            brush = Brush.radialGradient(
+                                colors = listOf(categoryAccent.copy(alpha = 0.22f), Color.Transparent),
+                                center = androidx.compose.ui.geometry.Offset(size.width * 0.5f, size.height * 0.2f),
+                                radius = size.width * 0.8f
+                            ),
+                            cornerRadius = androidx.compose.ui.geometry.CornerRadius(24.dp.toPx(), 24.dp.toPx())
+                        )
+                    }
+                    .border(
+                        width = 1.25.dp,
+                        brush = Brush.linearGradient(
+                            colors = listOf(
+                                categoryAccent.copy(alpha = 0.70f),
+                                categoryAccent.copy(alpha = 0.25f)
+                            )
+                        ),
+                        shape = RoundedCornerShape(24.dp)
+                    )
             ) {
-                Column(modifier = Modifier.padding(24.dp)) {
+                Column(modifier = Modifier.padding(20.dp)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -1707,43 +3511,65 @@ fun InsightsScreen(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Box(
                                 modifier = Modifier
-                                    .clip(RoundedCornerShape(6.dp))
-                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
-                                    .padding(horizontal = 6.dp, vertical = 3.dp)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(categoryAccent.copy(alpha = 0.15f))
+                                    .border(1.dp, categoryAccent.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
                             ) {
-                                Text(article.category, fontSize = 9.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                                Text(
+                                    text = article.category,
+                                    fontSize = 10.sp,
+                                    color = categoryAccent,
+                                    fontWeight = FontWeight.Bold
+                                )
                             }
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text(article.readTime, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(
+                                text = article.readTime,
+                                fontSize = 11.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                         IconButton(onClick = { onToggleBookmark(article.id) }) {
                             Icon(
                                 imageVector = if (isSaved) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
                                 contentDescription = "Bookmark",
-                                tint = if (isSaved) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                                tint = if (isSaved) categoryAccent else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
                     Spacer(modifier = Modifier.height(12.dp))
-                    Text(article.title, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp, color = MaterialTheme.colorScheme.onSurface, lineHeight = 22.sp)
+                    Text(
+                        text = article.title,
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 18.sp,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        lineHeight = 22.sp
+                    )
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text("Published on ${article.date} by Vaan Systems Advisory", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        text = "Published on ${article.date} by Vaan Systems Advisory",
+                        fontSize = 10.sp,
+                        color = categoryAccent.copy(alpha = 0.9f),
+                        fontWeight = FontWeight.SemiBold
+                    )
                     Spacer(modifier = Modifier.height(12.dp))
                     
                     // Full Article Content
                     Box(
                         modifier = Modifier
                             .weight(1f, fill = false)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                            .padding(12.dp)
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(Color(0xFF0F172A))
+                            .border(1.dp, categoryAccent.copy(alpha = 0.25f), RoundedCornerShape(14.dp))
+                            .padding(14.dp)
                     ) {
                         LazyColumn {
                             item {
                                 Text(
                                     text = article.content,
                                     fontSize = 12.sp,
-                                    color = MaterialTheme.colorScheme.onSurface,
+                                    color = Color.White.copy(alpha = 0.92f),
                                     lineHeight = 18.sp
                                 )
                             }
@@ -1752,10 +3578,20 @@ fun InsightsScreen(
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(
                         onClick = { selectedArticleForReading = null },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp)
+                        colors = ButtonDefaults.buttonColors(containerColor = categoryAccent),
+                        shape = RoundedCornerShape(14.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp)
                     ) {
-                        Text("Close article")
+                        Icon(Icons.Default.Close, contentDescription = null, tint = Color.Black)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Close article",
+                            color = Color.Black,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp
+                        )
                     }
                 }
             }
@@ -2132,9 +3968,9 @@ fun ContactUsView(viewModel: AppViewModel) {
                     
                     Text(
                         text = "VAAN Consulting Limited • New Zealand",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = Color(0xFF2DD4BF),
                         fontSize = 11.sp,
-                        fontWeight = FontWeight.Medium
+                        fontWeight = FontWeight.Bold
                     )
                 }
             }
