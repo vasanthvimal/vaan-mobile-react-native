@@ -1,27 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="108dp"
-    android:height="108dp"
-    android:viewportWidth="108"
-    android:viewportHeight="108">
-
-    <!-- Subtle branding circular pulse in safe zone background -->
-    <path
-        android:fillColor="#14B8A6"
-        android:fillAlpha="0.1"
-        android:pathData="M54,54m-33,0a33,33 0 1,1 66,0a33,33 0 1,1 -66,0" />
-
-    <!-- Solid Brand V symbol with the same slope and style -->
-    <path
-        android:strokeColor="#14B8A6"
-        android:strokeWidth="9"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round"
-        android:pathData="M31,33 L54,75 L77,33" />
-
-    <!-- Connected orange/gold consulting vertex dot -->
-    <path
-        android:fillColor="#F59E0B"
-        android:pathData="M54,75m-8.5,0a8.5,8.5 0 1,1 17,0a8.5,8.5 0 1,1 -17,0" />
-
-</vector>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:width="96dp"
+        android:height="96dp"
+        android:drawable="@drawable/img_app_icon_hitech_1785459738631"
+        android:gravity="center" />
+</layer-list>

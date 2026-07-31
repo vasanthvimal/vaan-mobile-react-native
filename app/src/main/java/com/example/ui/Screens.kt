@@ -57,6 +57,10 @@ import com.example.viewmodel.AiDraftState
 import com.example.viewmodel.AppViewModel
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.layout.ContentScale
+import com.example.R
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.verticalScroll
@@ -1429,38 +1433,99 @@ val servicesList = listOf(
 
 @Composable
 fun VaanBrandLogo(modifier: Modifier = Modifier) {
-    Canvas(modifier = modifier) {
-        val w = size.width
-        val h = size.height
-        
-        val strokeWidth = w * 0.12f
-        val tealColor = Color(0xFF14B8A6) // Bright Teal/Cyan (#14B8A6)
-        val goldColor = Color(0xFFF59E0B) // Amber/Gold Vertex (#F59E0B)
-        
-        // Left slant of V
-        drawLine(
-            color = tealColor,
-            start = Offset(w * 0.20f, h * 0.22f),
-            end = Offset(w * 0.50f, h * 0.78f),
-            strokeWidth = strokeWidth,
-            cap = StrokeCap.Round
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    
+    // Interactive 3D Spring Scale Animation on Press
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.88f else 1.0f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "logoPressScale"
+    )
+
+    // Hi-tech breathing ambient glow pulse
+    val infiniteTransition = rememberInfiniteTransition(label = "logoGlowTransition")
+    val glowAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.30f,
+        targetValue = 0.80f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1800, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "logoGlowAlpha"
+    )
+
+    Box(
+        modifier = modifier
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = {}
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        // High-Tech iOS Ambient Backglow Ring
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(2.dp)
+                .clip(RoundedCornerShape(22.dp))
+                .background(
+                    Brush.radialGradient(
+                        colors = listOf(
+                            Color(0xFF2DD4BF).copy(alpha = glowAlpha * 0.65f),
+                            Color(0xFF10B981).copy(alpha = glowAlpha * 0.25f),
+                            Color.Transparent
+                        )
+                    )
+                )
         )
-        
-        // Right slant of V
-        drawLine(
-            color = tealColor,
-            start = Offset(w * 0.80f, h * 0.22f),
-            end = Offset(w * 0.50f, h * 0.78f),
-            strokeWidth = strokeWidth,
-            cap = StrokeCap.Round
-        )
-        
-        // Connected orange/gold consulting vertex dot
-        drawCircle(
-            color = goldColor,
-            radius = w * 0.11f,
-            center = Offset(w * 0.50f, h * 0.78f)
-        )
+
+        // Glassy iOS Squircle Icon Badge with 3D Border
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(RoundedCornerShape(20.dp))
+                .border(
+                    width = 1.5.dp,
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            Color.White.copy(alpha = 0.65f),
+                            Color(0xFF2DD4BF).copy(alpha = 0.85f),
+                            Color.White.copy(alpha = 0.20f)
+                        )
+                    ),
+                    shape = RoundedCornerShape(20.dp)
+                )
+                .drawBehind {
+                    drawRoundRect(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                Color.White.copy(alpha = 0.30f),
+                                Color.Transparent
+                            )
+                        ),
+                        cornerRadius = androidx.compose.ui.geometry.CornerRadius(20.dp.toPx(), 20.dp.toPx())
+                    )
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.img_app_icon_hitech_1785459738631),
+                contentDescription = "Vaan Hi-Tech Icon",
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(20.dp)),
+                contentScale = ContentScale.Crop
+            )
+        }
     }
 }
 
