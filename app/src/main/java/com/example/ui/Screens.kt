@@ -1547,6 +1547,274 @@ fun VaanBrandText(fontSizeSp: androidx.compose.ui.unit.TextUnit = 15.sp, isDark:
     )
 }
 
+@Composable
+fun IPhoneGlassyChip(
+    text: String,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    fontSizeSp: androidx.compose.ui.unit.TextUnit = 11.sp
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    // 1. Interactive Press Physics: Spring bounce scale reduction on press
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.91f else 1.0f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "glassyChipPressScale"
+    )
+
+    // 2. Fluid Selection Animation transitions
+    val animatedGlowAlpha by animateFloatAsState(
+        targetValue = if (isSelected) 0.85f else 0.0f,
+        animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
+        label = "glassyChipGlowAlpha"
+    )
+
+    val animatedTextColor by animateColorAsState(
+        targetValue = if (isSelected) Color(0xFF032219) else MaterialTheme.colorScheme.onSurfaceVariant,
+        animationSpec = tween(durationMillis = 250),
+        label = "glassyChipTextColor"
+    )
+
+    Box(
+        modifier = modifier
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
+            .clip(RoundedCornerShape(14.dp))
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            )
+    ) {
+        // High-Tech Emerald Backglow when selected
+        if (isSelected || animatedGlowAlpha > 0f) {
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .background(
+                        Brush.radialGradient(
+                            colors = listOf(
+                                Color(0xFF2DD4BF).copy(alpha = animatedGlowAlpha * 0.45f),
+                                Color(0xFF10B981).copy(alpha = animatedGlowAlpha * 0.20f),
+                                Color.Transparent
+                            )
+                        )
+                    )
+            )
+        }
+
+        // iPhone Glassy Capsule / Squircle Pill Surface with Gloss Reflection
+        Box(
+            modifier = Modifier
+                .border(
+                    width = if (isSelected) 1.5.dp else 1.dp,
+                    brush = if (isSelected) {
+                        Brush.linearGradient(
+                            colors = listOf(
+                                Color.White.copy(alpha = 0.90f),
+                                Color(0xFF2DD4BF),
+                                Color(0xFF10B981).copy(alpha = 0.85f)
+                            )
+                        )
+                    } else {
+                        Brush.linearGradient(
+                            colors = listOf(
+                                Color.White.copy(alpha = 0.25f),
+                                Color.White.copy(alpha = 0.08f)
+                            )
+                        )
+                    },
+                    shape = RoundedCornerShape(14.dp)
+                )
+                .background(
+                    brush = if (isSelected) {
+                        Brush.linearGradient(
+                            colors = listOf(
+                                Color(0xFF2DD4BF),
+                                Color(0xFF10B981)
+                            )
+                        )
+                    } else {
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color.White.copy(alpha = 0.12f),
+                                Color.White.copy(alpha = 0.04f)
+                            )
+                        )
+                    },
+                    shape = RoundedCornerShape(14.dp)
+                )
+                .drawBehind {
+                    // Glossy Top Reflection Highlight
+                    drawRoundRect(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                Color.White.copy(alpha = if (isSelected) 0.45f else 0.22f),
+                                Color.Transparent
+                            )
+                        ),
+                        cornerRadius = androidx.compose.ui.geometry.CornerRadius(14.dp.toPx(), 14.dp.toPx())
+                    )
+                }
+                .padding(horizontal = 14.dp, vertical = 8.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = text,
+                color = animatedTextColor,
+                fontSize = fontSizeSp,
+                fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Bold
+            )
+        }
+    }
+}
+
+@Composable
+fun IPhoneGlassyButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    isPrimary: Boolean = true,
+    fontSizeSp: androidx.compose.ui.unit.TextUnit = 12.sp
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    // 1. Interactive Press Physics: Spring bounce scale reduction
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.92f else 1.0f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "glassyButtonScale"
+    )
+
+    // 2. High-Tech Ambient Glow Pulse
+    val infiniteTransition = rememberInfiniteTransition(label = "glassyButtonGlow")
+    val pulseGlow by infiniteTransition.animateFloat(
+        initialValue = 0.35f,
+        targetValue = 0.75f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1600, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulseGlow"
+    )
+
+    Box(
+        modifier = modifier
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
+            .clip(RoundedCornerShape(14.dp))
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        // High-Tech Ambient Backglow Ring
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .background(
+                    Brush.radialGradient(
+                        colors = if (isPrimary) {
+                            listOf(
+                                Color(0xFF2DD4BF).copy(alpha = pulseGlow * 0.5f),
+                                Color(0xFF10B981).copy(alpha = pulseGlow * 0.25f),
+                                Color.Transparent
+                            )
+                        } else {
+                            listOf(
+                                Color.White.copy(alpha = pulseGlow * 0.25f),
+                                Color(0xFF2DD4BF).copy(alpha = pulseGlow * 0.15f),
+                                Color.Transparent
+                            )
+                        }
+                    )
+                )
+        )
+
+        // iPhone Glassy Pill / Squircle Surface with Gloss Reflection
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(
+                    width = 1.2.dp,
+                    brush = if (isPrimary) {
+                        Brush.linearGradient(
+                            colors = listOf(
+                                Color.White.copy(alpha = 0.90f),
+                                Color(0xFF2DD4BF),
+                                Color.White.copy(alpha = 0.35f)
+                            )
+                        )
+                    } else {
+                        Brush.linearGradient(
+                            colors = listOf(
+                                Color.White.copy(alpha = 0.70f),
+                                Color(0xFF2DD4BF).copy(alpha = 0.45f),
+                                Color.White.copy(alpha = 0.15f)
+                            )
+                        )
+                    },
+                    shape = RoundedCornerShape(14.dp)
+                )
+                .background(
+                    brush = if (isPrimary) {
+                        Brush.linearGradient(
+                            colors = listOf(
+                                Color(0xFF2DD4BF),
+                                Color(0xFF10B981)
+                            )
+                        )
+                    } else {
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color.White.copy(alpha = 0.14f),
+                                Color.White.copy(alpha = 0.05f)
+                            )
+                        )
+                    },
+                    shape = RoundedCornerShape(14.dp)
+                )
+                .drawBehind {
+                    // Glossy Top Highlight Reflection
+                    drawRoundRect(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                Color.White.copy(alpha = if (isPrimary) 0.45f else 0.25f),
+                                Color.Transparent
+                            )
+                        ),
+                        cornerRadius = androidx.compose.ui.geometry.CornerRadius(14.dp.toPx(), 14.dp.toPx())
+                    )
+                }
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = text,
+                color = if (isPrimary) Color(0xFF032219) else Color.White,
+                fontSize = fontSizeSp,
+                fontWeight = FontWeight.ExtraBold
+            )
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainAppScreen(viewModel: AppViewModel) {
@@ -2249,23 +2517,18 @@ fun HomeScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Button(
+                        IPhoneGlassyButton(
+                            text = "Book Consultation",
                             onClick = { onNavigateToTab("bookings") },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2DD4BF), contentColor = Color(0xFF0F172A)),
-                            shape = RoundedCornerShape(12.dp),
+                            isPrimary = true,
                             modifier = Modifier.weight(1.0f).testTag("home_cta_start")
-                        ) {
-                            Text("Book Consultation", fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                        }
-                        OutlinedButton(
+                        )
+                        IPhoneGlassyButton(
+                            text = "View Capabilities",
                             onClick = { onNavigateToTab("services") },
-                            border = BorderStroke(1.dp, Color.White),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+                            isPrimary = false,
                             modifier = Modifier.weight(1.0f).testTag("home_cta_capabilities")
-                        ) {
-                            Text("View Capabilities", fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                        }
+                        )
                     }
                 }
             }
@@ -3608,27 +3871,15 @@ fun InsightsScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             categories.forEach { cat ->
-                val isSelected = selectedCategory == cat
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(
-                            if (isSelected) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.surfaceVariant
-                        )
-                        .clickable { selectedCategory = cat }
-                        .padding(horizontal = 10.dp, vertical = 6.dp)
-                ) {
-                    Text(
-                        text = cat,
-                        color = if (isSelected) Color(0xFF0F172A) else MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.ExtraBold
-                    )
-                }
+                IPhoneGlassyChip(
+                    text = cat,
+                    isSelected = selectedCategory == cat,
+                    onClick = { selectedCategory = cat },
+                    fontSizeSp = 10.sp
+                )
             }
         }
         Spacer(modifier = Modifier.height(12.dp))
@@ -4723,19 +4974,12 @@ fun ConsultationBookingForm(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         categories.forEach { cat ->
-                            val isSelected = serviceType == cat
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(10.dp))
-                                    .background(
-                                        if (isSelected) MaterialTheme.colorScheme.primary
-                                        else MaterialTheme.colorScheme.surfaceVariant
-                                    )
-                                    .clickable { serviceType = cat }
-                                    .padding(horizontal = 12.dp, vertical = 8.dp)
-                            ) {
-                                Text(cat, color = if (isSelected) Color(0xFF0F172A) else MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
-                            }
+                            IPhoneGlassyChip(
+                                text = cat,
+                                isSelected = serviceType == cat,
+                                onClick = { serviceType = cat },
+                                fontSizeSp = 11.sp
+                            )
                         }
                     }
                 }
@@ -6181,45 +6425,35 @@ fun AddAppointmentDialog(onDismiss: () -> Unit, onConfirm: (String, String, Stri
 
                 // Service Category Selection list
                 item {
-                    Text(text = "Consulting Service Category", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
+                    Text(text = "Consulting Service Category", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = Color(0xFF2DD4BF))
                     Spacer(modifier = Modifier.height(4.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         services.take(2).forEach { s ->
-                            val isSelected = selectedService == s
-                            Box(
-                                modifier = Modifier
-                                    .weight(1.0f)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                                    .clickable { selectedService = s }
-                                    .padding(vertical = 8.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(text = s.split(" ").first(), color = if (isSelected) Color(0xFF0F172A) else MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
-                            }
+                            IPhoneGlassyChip(
+                                text = s.split(" ").first(),
+                                isSelected = selectedService == s,
+                                onClick = { selectedService = s },
+                                modifier = Modifier.weight(1f),
+                                fontSizeSp = 11.sp
+                            )
                         }
                     }
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(6.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         services.takeLast(2).forEach { s ->
-                            val isSelected = selectedService == s
-                            Box(
-                                modifier = Modifier
-                                    .weight(1.0f)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                                    .clickable { selectedService = s }
-                                    .padding(vertical = 8.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(text = s.split(" ").first(), color = if (isSelected) Color(0xFF0F172A) else MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
-                            }
+                            IPhoneGlassyChip(
+                                text = s.split(" ").first(),
+                                isSelected = selectedService == s,
+                                onClick = { selectedService = s },
+                                modifier = Modifier.weight(1f),
+                                fontSizeSp = 11.sp
+                            )
                         }
                     }
                 }
