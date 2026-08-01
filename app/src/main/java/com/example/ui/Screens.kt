@@ -1488,22 +1488,11 @@ fun VaanBrandLogo(modifier: Modifier = Modifier) {
                 )
         )
 
-        // Glassy iOS Squircle Icon Badge with 3D Border
+        // Glassy iOS Squircle Icon Badge
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .clip(RoundedCornerShape(20.dp))
-                .border(
-                    width = 1.5.dp,
-                    brush = Brush.linearGradient(
-                        colors = listOf(
-                            Color.White.copy(alpha = 0.65f),
-                            Color(0xFF2DD4BF).copy(alpha = 0.85f),
-                            Color.White.copy(alpha = 0.20f)
-                        )
-                    ),
-                    shape = RoundedCornerShape(20.dp)
-                )
                 .drawBehind {
                     drawRoundRect(
                         brush = Brush.verticalGradient(
@@ -1518,7 +1507,7 @@ fun VaanBrandLogo(modifier: Modifier = Modifier) {
             contentAlignment = Alignment.Center
         ) {
             Image(
-                painter = painterResource(id = R.drawable.img_app_icon_v_only_1785547304690),
+                painter = painterResource(id = R.drawable.img_app_icon_clean_1785540477826),
                 contentDescription = "Vaan Hi-Tech Icon",
                 modifier = Modifier
                     .fillMaxSize()
