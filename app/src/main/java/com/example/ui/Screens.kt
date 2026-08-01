@@ -1518,7 +1518,7 @@ fun VaanBrandLogo(modifier: Modifier = Modifier) {
             contentAlignment = Alignment.Center
         ) {
             Image(
-                painter = painterResource(id = R.drawable.img_app_icon_hitech_1785459738631),
+                painter = painterResource(id = R.drawable.img_app_icon_clean_1785540477826),
                 contentDescription = "Vaan Hi-Tech Icon",
                 modifier = Modifier
                     .fillMaxSize()
